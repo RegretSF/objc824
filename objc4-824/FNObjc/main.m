@@ -20,7 +20,19 @@ int main(int argc, const char * argv[]) {
         // 不建议使用 new 来初始化对象，因为当重写 init{}方法，在里面写一些东西，
         // 然后调用 new 方法时，会发现，new 方法并没有你重写的 init{} 方法之后里面所写的东西。
         
+        // 问：为什么 NSObject 没有进到 _objc_rootAlloc(self) 方法？
+        NSObject *objc = [NSObject alloc];
+        
         FNPerson *objc1 = [FNPerson alloc];
+        objc1.name = @"小明";
+        objc1.age = @"16";
+        /*
+        x/4gx objc1
+        0x100606350: 0x011d80010000820d 0x0000000100004010
+        0x100606360: 0x0000000100004030 0x0000000000000000
+        0x0000000100004010：小明
+        0x0000000100004030：16
+         */
         FNPerson *objc2 = [FNPerson alloc];
         
         NSLog(@"Hello, World! -- %@ -- %@", objc1, objc2);
