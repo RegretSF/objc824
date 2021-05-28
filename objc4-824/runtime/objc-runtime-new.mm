@@ -7989,7 +7989,7 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
     bool hasCxxDtor = cls->hasCxxDtor();
     bool fast = cls->canAllocNonpointer();
     size_t size;
-
+    // 1. 要开辟多少内存？
     size = cls->instanceSize(extraBytes);
     if (outAllocatedSize) *outAllocatedSize = size;
 
@@ -7997,6 +7997,7 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
     if (zone) {
         obj = (id)malloc_zone_calloc((malloc_zone_t *)zone, 1, size);
     } else {
+        // 2. 怎么去申请内存？ -- 这里是开辟内存的地方
         obj = (id)calloc(1, size);
     }
     if (slowpath(!obj)) {
@@ -8005,7 +8006,7 @@ _class_createInstanceFromZone(Class cls, size_t extraBytes, void *zone,
         }
         return nil;
     }
-
+    // 3. 将 cls 和指针绑定在一起，进行关联
     if (!zone && fast) {
         obj->initInstanceIsa(cls, hasCxxDtor);
     } else {
