@@ -69,6 +69,20 @@
     3：收尾工作:结构体的总大小,也就是sizeof的结果,.必须是其内部最大成员的整数倍，不足的要补⻬。
  
  2. calloc 开辟内存。
+    在 libmalloc-317.40.8 源码中，calloc的流程：
+ 
+    calloc -> _malloc_zone_calloc -> default_zone_calloc -> nano_calloc -> _nano_malloc_check_clear -> segregated_size_to_fit。
+    直到 segregated_size_to_fit 方法中，查看 NANO_REGIME_QUANTA_SIZE 的定义发现以下宏定义：
+ 
+     #define NANO_MAX_SIZE            256 （ Buckets sized {16, 32, 48, ..., 256} ）
+     #define SHIFT_NANO_QUANTUM        4
+     #define NANO_REGIME_QUANTA_SIZE    (1 << SHIFT_NANO_QUANTUM)    // 16
+     #define NANO_QUANTA_MASK        (NANO_REGIME_QUANTA_SIZE - 1)
+     #define NANO_SIZE_CLASSES        (NANO_MAX_SIZE/NANO_REGIME_QUANTA_SIZE)
+ 
+    得知，calloc 开辟内存是遵守 16 字节对齐的。
+ 
+    
  
  3. initInstanceIsa 将 cls 和 isa 绑定在一起，进行关联。
  */
