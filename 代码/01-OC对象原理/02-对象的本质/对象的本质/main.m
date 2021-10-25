@@ -29,7 +29,21 @@
         Class isa;
         NSString *_name;
     };
- 4. 总结 Objective-C 对象的本质在底层就是一个结构体。
+ 
+ 4. getter 和 setter
+    1. 在转成 cpp 文件后，name 属性的 getter 为：
+    static NSString * _I_SHPerson_name(SHPerson * self, SEL _cmd) { return (*(NSString **)((char *)self + OBJC_IVAR_$_SHPerson$_name)); }
+    它的返回值有个 self + OBJC_IVAR_$_SHPerson$_name，是因为 self + OBJC_IVAR_$_SHPerson$_name 是 name 的值的存储的地方。
+    
+    2. setter 方法的生成有点特殊
+    在用 strong 修饰的时候长这样：
+    static void _I_SHPerson_setName_(SHPerson * self, SEL _cmd, NSString *name) { (*(NSString **)((char *)self + OBJC_IVAR_$_SHPerson$_name)) = name; }
+ 
+    用 copy 修饰的时候长这样：
+    extern "C" __declspec(dllimport) void objc_setProperty (id, SEL, long, id, bool, bool);
+    static void _I_SHPerson_setName_(SHPerson * self, SEL _cmd, NSString *name) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct SHPerson, _name), (id)name, 0, 1); }
+ 
+    应该是系统针对不同的修饰符做了不同的处理。
  
  Class 的本质
  1. 在 objc-private.h 文件中有 Class 的声明定义：typedef struct objc_class *Class;

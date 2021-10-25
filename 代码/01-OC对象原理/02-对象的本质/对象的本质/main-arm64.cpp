@@ -106,7 +106,7 @@ struct __AtAutoreleasePool {
 };
 
 #define __OFFSETOFIVAR__(TYPE, MEMBER) ((long long) &((TYPE *)0)->MEMBER)
-static __NSConstantStringImpl __NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_4bf953_mi_0 __attribute__ ((section ("__DATA, __cfstring"))) = {__CFConstantStringClassReference,0x000007c8,"%zd\357\274\214%zd\357\274\214%zd",15};
+static __NSConstantStringImpl __NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_5b3d6e_mi_0 __attribute__ ((section ("__DATA, __cfstring"))) = {__CFConstantStringClassReference,0x000007c8,"%zd\357\274\214%zd\357\274\214%zd",15};
 
 
 
@@ -37284,7 +37284,7 @@ int main(int argc, const char * argv[]) {
 
         SHPerson *person = ((SHPerson *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("SHPerson"), sel_registerName("alloc"));
 
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_4bf953_mi_0, sizeof(person), class_getInstanceSize(((Class (*)(id, SEL))(void *)objc_msgSend)((id)person, sel_registerName("class"))), malloc_size((__bridge const void *)(person)));
+        NSLog((NSString *)&__NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_5b3d6e_mi_0, sizeof(person), class_getInstanceSize(((Class (*)(id, SEL))(void *)objc_msgSend)((id)person, sel_registerName("class"))), malloc_size((__bridge const void *)(person)));
     }
     return 0;
 }
