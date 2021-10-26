@@ -70,7 +70,6 @@ int main(int argc, const char * argv[]) {
          ios 端为小端模式，所以在读取内存的时候从右往左读。
          */
         SHPerson *person = [SHPerson alloc];
-        
         NSLog(@"%zd，%zd，%zd", sizeof(person), class_getInstanceSize(person.class), malloc_size((__bridge const void *)(person)));
     }
     return 0;
