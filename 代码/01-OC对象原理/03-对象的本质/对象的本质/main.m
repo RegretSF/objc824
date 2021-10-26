@@ -134,7 +134,68 @@
  
  
  2. nonPointerIsa分析
+ 回到 isa_t isa，isa_t 使用 union 的原因也大概是因为内存优化的考虑。isa 指针中通过 char + 位域（即二进制中每一位均可表示不同的信息），通常来说，isa 指针占用的内存大小是8字节即64 bit(64位系统下)，已经足够存储很多的信息了，这样可以极大的节省内存，以提高性能。
  
+ 在 isa_t 中，有个 struct，struct 有个 ISA_BITFIELD 的成员变量，ISA_BITFIELD 的部分定义如下：
+     uintptr_t nonpointer        : 1;                                       \
+     uintptr_t has_assoc         : 1;                                       \
+     uintptr_t has_cxx_dtor      : 1;                                       \
+     uintptr_t shiftcls          : 33;                                      \
+     uintptr_t magic             : 6;                                       \
+     uintptr_t weakly_referenced : 1;                                       \
+     uintptr_t unused            : 1;                                       \
+     uintptr_t has_sidetable_rc  : 1;                                       \
+     uintptr_t extra_rc          : 19
+ 
+ 可以看到的是 ISA_BITFIELD 用到了位域。以下是各个成员的注释：
+ nonpointer         : 表示是否对 isa 指针开启指针优化 0:纯isa指针，1:不止是类对象地址,isa 中包含了类信息、对象的引用计数等。
+ has_assoc          : 关联对象标志位，0没有，1存在。
+ has_cxx_dtor       : 该对象是否有 C++ 或者 Objc 的析构器,如果有析构函数,则需要做析构逻辑, 如果没有,则可以更快的释放对象。
+ shiftcls           : 存储类指针的值。开启指针优化的情况下，在 arm64 架构中有 33 位用来存储类指针。
+ magic              : 用于调试器判断当前对象是真的对象还是没有初始化的空间。
+ weakly_referenced  : 指对象是否被指向或者曾经指向一个 ARC 的弱变量，没有弱引用的对象可以更快释放。
+ unused             : 标志对象是否正在释放内存。
+ has_sidetable_rc   : 当对象引用技术大于 10 时，则需要借用该变量存储进位。
+ extra_rc           : 当表示该对象的引用计数值，实际上是引用计数值减 1， 例如，如果对象的引用计数为 10，那么 extra_rc 为 9。如果引用计数大于 10， 则需要使用到 has_sidetable_rc。
+ 
+ 3. isa 推导 class
+ 通过 [SHPerson class] 可以拿到 SHPerson 的 class 对象。每个对象都有一个 isa，这个 isa 指向的是 class 对象，但通过 lldb 打印 SHPerson 实力对象的内存分布发现，第一块内存地址（也就是isa）和 [SHPerson class] 拿到的 class 对象的内存地址不一样。
+ isa: 0x000021a100008175
+ class对象: 0x0000000100008170
+ 
+    1. ISA_MASK 获取 calss 对象的内存地址
+     这是因为苹果做了一个掩码的操作，在 isa.h 文件中有一个 ISA_MASK 的宏定义（系统架构不一样，值也不一样，调试的时候根据运行环境选取不同的值），用 isa 的地址 & 上 ISA_MASK，就可以得出 class 对象的内存地址。
+    打印如下：
+     (lldb) x/4gx person
+     0x1007170c0: 0x000021a100008175 0x0000000000000000
+     0x1007170d0: 0x0000000000000000 0xce7ed407c2c98f1d
+     (lldb) p/x [SHPerson class]
+     (Class) $3 = 0x0000000100008170 SHPerson
+     (lldb) p/x 0x000021a100008175 & 0x0000000ffffffff8ULL
+     (unsigned long long) $10 = 0x0000000100008170
+ 
+    2. isa 的位运算获取 calss 对象的内存地址
+    通过分析 isa_t 得知 ISA_BITFIELD 的 shiftcls 是用来存储 class 指针的值，所以只要拿到 shiftcls，看看里面存放的值就可以得知 calss 对象的内存地址。
+    观察到在 arm64 下，shiftcls 占33位，在前面共有3位（1+1+1），后面共有28位（6+1+1+1+19）。
+    所以，运算的步骤如下：
+        1. 左移3位     -- 顶掉前面的3位，这时后面会空出3位，不足用0补。
+        2. 右移31位    -- 后面本来有28位，加上用0补的3位，一共31位
+        3. 左移28位    -- 将 shiftcls 归位。
+    平移的数位不是固定的，根据 ISA_BITFIELD 中的规定得算出来的。
+ 
+    打印如下：
+     (lldb) x/4gx person
+     0x100722a40: 0x000021a100008175 0x0000000000000000
+     0x100722a50: 0x000000010080db90 0xcdb2bd35671d6859
+     (lldb) p/x 0x000021a100008175 >> 3
+     (long) $1 = 0x000004342000102e
+     (lldb) p/x 0x000004342000102e << 20
+     (long) $2 = 0x4342000102e00000
+     (lldb) p/x 0x4342000102e00000 >> 17
+     (long) $3 = 0x000021a100008170
+     (lldb) p/x [SHPerson class]
+     (Class) $4 = 0x0000000100008170 SHPerson
+     (lldb)
  */
 
 // 结构体
@@ -194,8 +255,8 @@ int main(int argc, const char * argv[]) {
 //        t2.name = "Andy";
 //        t2.age = 18;
         
-//        SHPerson *person = [SHPerson alloc];
-//        NSLog(@"%zd，%zd，%zd", sizeof(person), class_getInstanceSize(person.class), malloc_size((__bridge const void *)(person)));
+        SHPerson *person = [SHPerson alloc];
+        NSLog(@"%zd，%zd，%zd", sizeof(person), class_getInstanceSize(person.class), malloc_size((__bridge const void *)(person)));
     }
     return 0;
 }
