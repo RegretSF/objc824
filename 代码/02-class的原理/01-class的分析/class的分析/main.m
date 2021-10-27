@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 
 /*
+ isa的流程探究
  通过分析对象的本质得知instance对象的isa指向class对象，那class对象的isa指向谁呢？指向的对象是不是也像class对象一样呢？它自己的isa指向的又是谁呢？它们之间有联系呢？具体是用来干什么的。
  1. lldb打印
      定义一个 SHPerson 对象，在 main 函数初始化并断点调试。
@@ -50,6 +51,11 @@
     /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/isa的走位.png
     
     instance对象的isa指向class对象，class对象的isa指向metaclass对象，metaclass对象的isa指向rootMetaclass对象，rootMetaclass对象的isa指向的是自己本身。
+ */
+
+/*
+ class对象，metaclass对象，rootMetaclass对象的继承关系
+ class对象，metaclass对象，rootMetaclass对象的继承关系是否和instance对象的继承关系一样呢？探索这个文图
  */
 
 @interface SHPerson : NSObject
