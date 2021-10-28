@@ -341,18 +341,19 @@ extern "C" IMP cache_getImp(Class cls, SEL sel, IMP value_on_constant_cache_miss
 
 struct cache_t {
 private:
-    explicit_atomic<uintptr_t> _bucketsAndMaybeMask;
+    /*-----------------------*/
+    explicit_atomic<uintptr_t> _bucketsAndMaybeMask;    // 8字节
     union {
         struct {
-            explicit_atomic<mask_t>    _maybeMask;
+            explicit_atomic<mask_t>    _maybeMask;      // 4字节
 #if __LP64__
-            uint16_t                   _flags;
+            uint16_t                   _flags;          // 2字节
 #endif
-            uint16_t                   _occupied;
+            uint16_t                   _occupied;       // 2字节
         };
-        explicit_atomic<preopt_cache_t *> _originalPreoptCache;
+        explicit_atomic<preopt_cache_t *> _originalPreoptCache; // 8字节
     };
-
+    /*-----------------------*/
 #if CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_OUTLINED
     // _bucketsAndMaybeMask is a buckets_t pointer
     // _maybeMask is the buckets mask
