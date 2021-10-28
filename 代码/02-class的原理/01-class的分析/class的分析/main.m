@@ -54,8 +54,121 @@
  */
 
 /*
- class对象，metaclass对象，rootMetaclass对象的继承关系
- class对象，metaclass对象，rootMetaclass对象的继承关系是否和instance对象的继承关系一样呢？探索这个文图
+ class对象，metaclass对象，rootMetaclass对象的继承链
+ class对象，metaclass对象，rootMetaclass对象是否也有继承链呢？如果有，是怎么样的一个继承链呢？添加一个继承至SHPerson的SHStudent类。
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/01-class的分析/class的分析/SHStudent类.png
+ 并且为了更好的理解,先把SHStudent比作子类（subClass），SHPerson比作父类（superClass），NSObject比作根类（rootClass）。
+ 
+    1. runtime部分API介绍。
+    导入 #import <objc/runtime.h>
+    object_getClass:        传一个对象，返回这个对象的class对象。
+    class_getSuperclass:    传一个 class，返回 class 的 superclass。
+    objc_getClass:          传一个类名称，返回对应的class对象。
+    objc_getMetaClass:      传一个类名称，返回对应的metaclass对象。
+ 
+    objc_getClass和objc_getMetaClass先作为了解，因为object_getClass就可以得到 calss对象，metaclass对象，rootMetaclass对象。主要用到object_getClass和class_getSuperclass。
+    
+    2. 使用 runtime API 打印输出
+     、、、
+     //1. 子类的instance对象isa流程和继承链。
+     NSLog(@"子类(SHStudent)打印");
+     SHStudent *student = [[SHStudent alloc] init];
+     // class对象
+     Class class_student = object_getClass(student);
+     // metaclass对象
+     Class metaclass_student = object_getClass(class_student);
+     // rootMetaclass对象
+     Class rootMetaclass_student = object_getClass(metaclass_student);
+     
+     NSLog(@"class_student        : %@ - %p",class_student, class_student);
+     NSLog(@"metaclass_student    : %@ - %p",metaclass_student, metaclass_student);
+     NSLog(@"rootMetaclass_student: %@ - %p",rootMetaclass_student, rootMetaclass_student);
+     
+     NSLog(@"------------------");
+     
+     // class对象的superclass对象
+     Class superclass_student = class_getSuperclass(class_student);
+     // metaclass对象的superclass对象
+     Class superMetaclass_student = class_getSuperclass(metaclass_student);
+     // rootMetaclass对象的superclass对象
+     Class superRootMetaclass_student = class_getSuperclass(rootMetaclass_student);
+     
+     NSLog(@"superclass_student        : %@ - %p",superclass_student, superclass_student);
+     NSLog(@"superMetaclass_student    : %@ - %p",superMetaclass_student, superMetaclass_student);
+     NSLog(@"superRootMetaclass_student: %@ - %p",superRootMetaclass_student, superRootMetaclass_student);
+     
+     //2. 父类的instance对象isa流程和继承链。
+     NSLog(@"");
+     NSLog(@"父类(SHPerson)打印");
+     SHPerson *person = [[SHPerson alloc] init];
+     // class对象
+     Class class_person = object_getClass(person);
+     // metaclass对象
+     Class metaclass_person = object_getClass(class_person);
+     // rootMetaclass对象
+     Class rootMetaclass_person = object_getClass(metaclass_person);
+     
+     NSLog(@"class_person        : %@ - %p",class_person, class_person);
+     NSLog(@"metaclass_person    : %@ - %p",metaclass_person, metaclass_person);
+     NSLog(@"rootMetaclass_person: %@ - %p",rootMetaclass_person, rootMetaclass_person);
+     
+     NSLog(@"------------------");
+     
+     // class对象的superclass对象
+     Class superclass_person = class_getSuperclass(class_person);
+     // metaclass对象的superclass对象
+     Class superMetaclass_person = class_getSuperclass(metaclass_person);
+     // rootMetaclass对象的superclass对象
+     Class superRootMetaclass_person = class_getSuperclass(rootMetaclass_person);
+     
+     NSLog(@"superclass_person        : %@ - %p",superclass_person, superclass_person);
+     NSLog(@"superMetaclass_person    : %@ - %p",superMetaclass_person, superMetaclass_person);
+     NSLog(@"superRootMetaclass_person: %@ - %p",superRootMetaclass_person, superRootMetaclass_person);
+     
+     //3. 根类的instance对象isa流程和继承链。
+     NSLog(@"");
+     NSLog(@"根类(NSObject)打印");
+     NSObject *object = [[NSObject alloc] init];
+     // class对象
+     Class class_object = object_getClass(object);
+     // metaclass对象
+     Class metaclass_object = object_getClass(class_object);
+     // rootMetaclass对象
+     Class rootMetaclass_object = object_getClass(metaclass_object);
+     
+     NSLog(@"class_object        : %@ - %p",class_object, class_object);
+     NSLog(@"metaclass_object    : %@ - %p",metaclass_object, metaclass_object);
+     NSLog(@"rootMetaclass_object: %@ - %p",rootMetaclass_object, rootMetaclass_object);
+     
+     NSLog(@"------------------");
+     
+     // class对象的superclass对象
+     Class superclass_object = class_getSuperclass(class_object);
+     // metaclass对象的superclass对象
+     Class superMetaclass_object = class_getSuperclass(metaclass_object);
+     // rootMetaclass对象的superclass对象
+     Class superRootMetaclass_object = class_getSuperclass(rootMetaclass_object);
+     
+     NSLog(@"superclass_object        : %@ - %p",superclass_object, superclass_object);
+     NSLog(@"superMetaclass_object    : %@ - %p",superMetaclass_object, superMetaclass_object);
+     NSLog(@"superRootMetaclass_object: %@ - %p",superRootMetaclass_object, superRootMetaclass_object);
+     、、、
+ 
+    3. lldb打印分析
+    /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/01-class的分析/class的分析/子类、父类、根类打印分析.jpeg
+ 
+    红色箭头代表class对象的继承链，黄色箭头代表metaclass对象的继承链，绿色箭头代表rootMetaclass对象的继承链。
+    从图得知：
+        1. 子类的class对象的父类是父类的class对象，父类的class对象的父类是根类的class对象，根类的class对象为nil。
+        2. 子类的metaclass对象的父类是父类的metaclass对象，父类的metaclass对象的父类是根类的metaclass对象，根类的metaclass对象的父类是根类的class对象。
+ 
+    4. 一张经典的图
+    /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/01-class的分析/class的分析/isa流程图.png
+ 
+    这种是一张广为流传并且很经典的图，这张图描述isa的流程以及class的继承链，通过以上的分析再来看这种图就有种豁然开朗的感觉，以前总看不懂这张。
+    其实不管是子类、父类还是根类的isa流程和class的继承链都基本是一样的，真正的不同在于根类的metaclass对象(rootMetaclass)这个地方，isa的流程到这儿，isa指针再怎么指都是rootMetaclass自己。rootMetaclass的父类是rootClass，而rootClass对象的superclass指针指向 nil。
+    
+ 
  */
 
 @interface SHPerson : NSObject
@@ -63,16 +176,95 @@
 @implementation SHPerson
 @end
 
+@interface SHStudent : SHPerson
+@end
+@implementation SHStudent
+@end
+
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
+        //1. 子类的instance对象isa流程和继承链。
+        NSLog(@"子类(SHStudent)打印");
+        SHStudent *student = [[SHStudent alloc] init];
+        // class对象
+        Class class_student = object_getClass(student);
+        // metaclass对象
+        Class metaclass_student = object_getClass(class_student);
+        // rootMetaclass对象
+        Class rootMetaclass_student = object_getClass(metaclass_student);
+        
+        NSLog(@"class_student        : %@ - %p",class_student, class_student);
+        NSLog(@"metaclass_student    : %@ - %p",metaclass_student, metaclass_student);
+        NSLog(@"rootMetaclass_student: %@ - %p",rootMetaclass_student, rootMetaclass_student);
+        
+        NSLog(@"------------------");
+        
+        // class对象的superclass对象
+        Class superclass_student = class_getSuperclass(class_student);
+        // metaclass对象的superclass对象
+        Class superMetaclass_student = class_getSuperclass(metaclass_student);
+        // rootMetaclass对象的superclass对象
+        Class superRootMetaclass_student = class_getSuperclass(rootMetaclass_student);
+        
+        NSLog(@"superclass_student        : %@ - %p",superclass_student, superclass_student);
+        NSLog(@"superMetaclass_student    : %@ - %p",superMetaclass_student, superMetaclass_student);
+        NSLog(@"superRootMetaclass_student: %@ - %p",superRootMetaclass_student, superRootMetaclass_student);
+        
+        //2. 父类的instance对象isa流程和继承链。
+        NSLog(@"");
+        NSLog(@"父类(SHPerson)打印");
         SHPerson *person = [[SHPerson alloc] init];
-//        Class class_objc = [person class]; // object_getClass(person) || [SHPerson class]
-//        Class metaclass_objc = object_getClass(class_objc);
-//        Class rootMetaclass_objc = object_getClass(metaclass_objc);
-//        Class rootMetaclass_objc2 = object_getClass(rootMetaclass_objc);
-//        NSLog(@"\ninstance: %@ \nclass: %@ \nmetaclass: %@ \nrootMetaclass: %@", person, class_objc, metaclass_objc, rootMetaclass_objc);
-//        NSLog(@"%@", rootMetaclass_objc2);
-        NSLog(@"-------");
+        // class对象
+        Class class_person = object_getClass(person);
+        // metaclass对象
+        Class metaclass_person = object_getClass(class_person);
+        // rootMetaclass对象
+        Class rootMetaclass_person = object_getClass(metaclass_person);
+        
+        NSLog(@"class_person        : %@ - %p",class_person, class_person);
+        NSLog(@"metaclass_person    : %@ - %p",metaclass_person, metaclass_person);
+        NSLog(@"rootMetaclass_person: %@ - %p",rootMetaclass_person, rootMetaclass_person);
+        
+        NSLog(@"------------------");
+        
+        // class对象的superclass对象
+        Class superclass_person = class_getSuperclass(class_person);
+        // metaclass对象的superclass对象
+        Class superMetaclass_person = class_getSuperclass(metaclass_person);
+        // rootMetaclass对象的superclass对象
+        Class superRootMetaclass_person = class_getSuperclass(rootMetaclass_person);
+        
+        NSLog(@"superclass_person        : %@ - %p",superclass_person, superclass_person);
+        NSLog(@"superMetaclass_person    : %@ - %p",superMetaclass_person, superMetaclass_person);
+        NSLog(@"superRootMetaclass_person: %@ - %p",superRootMetaclass_person, superRootMetaclass_person);
+        
+        //3. 根类的instance对象isa流程和继承链。
+        NSLog(@"");
+        NSLog(@"根类(NSObject)打印");
+        NSObject *object = [[NSObject alloc] init];
+        // class对象
+        Class class_object = object_getClass(object);
+        // metaclass对象
+        Class metaclass_object = object_getClass(class_object);
+        // rootMetaclass对象
+        Class rootMetaclass_object = object_getClass(metaclass_object);
+        
+        NSLog(@"class_object        : %@ - %p",class_object, class_object);
+        NSLog(@"metaclass_object    : %@ - %p",metaclass_object, metaclass_object);
+        NSLog(@"rootMetaclass_object: %@ - %p",rootMetaclass_object, rootMetaclass_object);
+        
+        NSLog(@"------------------");
+        
+        // class对象的superclass对象
+        Class superclass_object = class_getSuperclass(class_object);
+        // metaclass对象的superclass对象
+        Class superMetaclass_object = class_getSuperclass(metaclass_object);
+        // rootMetaclass对象的superclass对象
+        Class superRootMetaclass_object = class_getSuperclass(rootMetaclass_object);
+        
+        NSLog(@"superclass_object        : %@ - %p",superclass_object, superclass_object);
+        NSLog(@"superMetaclass_object    : %@ - %p",superMetaclass_object, superMetaclass_object);
+        NSLog(@"superRootMetaclass_object: %@ - %p",superRootMetaclass_object, superRootMetaclass_object);
     }
     return 0;
 }
