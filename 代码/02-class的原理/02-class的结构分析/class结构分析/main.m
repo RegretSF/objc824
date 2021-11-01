@@ -114,11 +114,45 @@
  可以看到 0x1000080e8(SHPerson.class首地址)+ 0x20(32) 取到bits的内存地址是第三行的地址0x100008108，我们再对这个内存地址进行一个强转。下一步就是探索这个 bits 里面有什么。
  */
 
+/*
+ class_rw_t 的探索
+ 在拿到 class_data_bits_t 的内存地址后，需要拿到里面的data，怎么那呢，我们看到源码是这么拿的：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/class_rw_t 的获取.png
+ 
+ 那我们也假里假气的，通过lldb打印的方式去获取：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/lldb获取class_rw_t的结构.png
+我们通过 p $2->data() 的方式拿到了 class_rw_t 的内存地址，并且回想起通过内存地址取值的操作，p *($3)就拿到了class_rw_t的结构。（$2和$3都是lldb打印生成的变量名。）
+ 
+ 我们现在需要拿到，这个类里缓存的方法，属性，协议等等。先来看class_rw_t里有什么。
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/class_rw_t的成员变量.png
+
+ 这么一看，貌似没有我们想要的东西，那就找方法，往下找，发现：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/class_rw_t获取属性，方法的方法.png
+ 这个不就是我们需要的么，为此，我们先来给 SHPerson 添加属性和方法：
+ 、、、
+ @interface SHPerson : NSObject
+ @property (nonatomic, copy) NSString *name;
+ @property (nonatomic) NSInteger age;
+ @end
+ @implementation SHPerson
+ - (void)setNickname:(NSString *)name {
+ }
+ @end
+ 、、、
+ 重新运行，重新拿到 class_rw_t，并获取属性和方法：
+ 
+ 
+ */
+
 #import <Foundation/Foundation.h>
 
 @interface SHPerson : NSObject
+@property (nonatomic, copy) NSString *name;
+@property (nonatomic) NSInteger age;
 @end
 @implementation SHPerson
+- (void)setNickname:(NSString *)name {
+}
 @end
 
 int main(int argc, const char * argv[]) {
