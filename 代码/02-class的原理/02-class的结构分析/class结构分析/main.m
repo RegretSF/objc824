@@ -111,7 +111,7 @@
  (lldb)
  、、、
  
- 可以看到 0x1000080e8(SHPerson.class首地址)+ 0x20(32) 取到的内存地址是第三行的地址0x100008108，我们再对这个内存地址进行一个强转，得知，它就是 bits 的内存地址了。下一步就是探索这个 bits 里面有什么。
+ 可以看到 0x1000080e8(SHPerson.class首地址)+ 0x20(32) 取到bits的内存地址是第三行的地址0x100008108，我们再对这个内存地址进行一个强转。下一步就是探索这个 bits 里面有什么。
  */
 
 #import <Foundation/Foundation.h>
@@ -154,35 +154,6 @@ int main(int argc, const char * argv[]) {
         
         SHPerson *person = [[SHPerson alloc] init];
         NSLog(@"类的结构内存计算");
-        /*
-         isa_t isa;             // 8字节
-         Class superclass;      // 8字节
-         cache_t cache;         // 16字节
-         class_data_bits_t bits;
-         
-         求出 bits 的内存地址
-         isa的内存大小 + superclass的内存大小 + cache的内存大小
-         8 + 8 + 16 = 32
-         SHPerson.class首地址 + 32个字节
-         
-         (lldb) x/4gx SHPerson.class
-         0x1000080e8: 0x00000001000080c0 0x0000000100379140
-         0x1000080f8: 0x0001000100797e90 0x0001801000000000
-         (lldb) po 0x0000000100379140
-         NSObject
-
-         (lldb) p/x NSObject.class
-         (Class) $3 = 0x0000000100379140 NSObject
-         (lldb) x/6gx SHPerson.class
-         0x1000080e8: 0x00000001000080c0 0x0000000100379140
-         0x1000080f8: 0x0001000100797e90 0x0001801000000000
-         0x100008108: 0x0000000100797e74 0x000000010009d910
-         (lldb) p/x 0x1000080e8+0x20
-         (long) $5 = 0x0000000100008108
-         (lldb) p (class_data_bits_t *)0x0000000100008108
-         (class_data_bits_t *) $6 = 0x0000000100008108
-         (lldb)
-         */
     }
     return 0;
 }
