@@ -16,9 +16,9 @@
      2. OBJC2 中 objc_class 的定义
      源码工程中搜索 objc_class : objc_object {，如图：
      /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/objc_class的真正结构.png
-     可以发现搜素出来的有两个 objc_class 的定义，分别在两个文件为objc-runtime-new.h和objc-runtime-old.h,这里选择objc-runtime-new.h的objc_class定义，因为这个是新的，肯定用这个。
+     搜索出来的有两个 objc_class 的定义，分别在两个文件为objc-runtime-new.h和objc-runtime-old.h,这里选择objc-runtime-new.h的objc_class定义，因为这个是新的，肯定用这个。
      
-     3. Class的结构研究
+     3. Class的结构探究
      影响对象的内存大小是由成员变量决定的，所以在分析 Class 的时候，我们只需要关注，objc_object和objc_class的成员变量，像里面定义的一些方法，静态变量什么的都可以不用关注。
      如下图：
      /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/objc_object的成员变量.png
@@ -85,21 +85,13 @@
  class_data_bits_t bits;
  
  求出 bits 的内存地址
- isa的内存大小 + superclass的内存大小 + cache的内存大小
+isa的内存大小 + superclass的内存大小 + cache的内存大小
  8 + 8 + 16 = 32
  SHPerson.class首地址 + 32个字节
  、、、
  
  这是一段 lldb 的打印分析：
  、、、
- (lldb) x/4gx SHPerson.class
- 0x1000080e8: 0x00000001000080c0 0x0000000100379140
- 0x1000080f8: 0x0001000100797e90 0x0001801000000000
- (lldb) po 0x0000000100379140
- NSObject
-
- (lldb) p/x NSObject.class
- (Class) $3 = 0x0000000100379140 NSObject
  (lldb) x/6gx SHPerson.class
  0x1000080e8: 0x00000001000080c0 0x0000000100379140
  0x1000080f8: 0x0001000100797e90 0x0001801000000000
@@ -140,7 +132,22 @@
  @end
  、、、
  重新运行，重新拿到 class_rw_t，并获取属性和方法：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/properties()方法的lldb打印.png
  
+ 通过 lldb 打印 p $3.properties()，拿到了类型为 property_array_t 的 $4，通过property_array_t在运行时的结构看到里面有 ptr 这个指针地址。打印出来发现它是一个 property_list_t 类型的，来看看源码中 property_list_t 是什么：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/property_list_t源码定义.png
+ 
+ 源码中什么都没有，但它继承自 entsize_list_tt：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/entsize_list_tt源码定义.png
+ 
+ 可以看到，里面有一个 get 获取元素的方法，get 里调用 getOrEnd，发现，getOrEnd的实现，是通过内存平移的方式来拿到对应的元素！
+ 这时，我们试试在lldb打印中通过get方法拿我们的属性相关的东西,但是因为 lldb 打印的原因，得重新运行，并且我们知道 ptr 的类型 为 property_list_t，在打印到property_array_t的时候，可以直接强制将 ptr 转换为 property_list_t，不然在lldb中不能通过get方法打印出相关的东西。
+ lldb打印：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/lldb打印property_list_t含有的属性.png
+ 
+ 通过lldb打印，确实有属性相关的东西，来看看方法，过程和属性的差不多。
+ methods() 返回的是一个 method_array_t 类型的，他一样继承自entsize_list_tt，但通过get方法打印的出来的是一个里面啥都没有的 method_t 类型：
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/methods()方法的lldb打印.png
  
  */
 
