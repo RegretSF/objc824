@@ -149,6 +149,17 @@ isa的内存大小 + superclass的内存大小 + cache的内存大小
  methods() 返回的是一个 method_array_t 类型的，他一样继承自entsize_list_tt，但通过get方法打印的出来的是一个里面啥都没有的 method_t 类型：
  /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/methods()方法的lldb打印.png
  
+ 不要着急，来看一下 method_t 的结构：
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/method_t的结构.png
+ 
+ 这么一看，好像看不出什么，我们往下看：
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/method_t的name()方法和imp方法.png
+通过lldb打印name方法，成功获取到对应的方法名称！并且，细心的发现，我们拿到的都是对象方法！
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/02-class的结构分析/class结构分析/打印method_t中的name方法.png
+ 另外 .cxx_destruct方法原本是为了C++对象析构的，ARC借用了这个方法插入代码实现了自动内存释放的工作。
+ 
+ 总结：通过探究Class了解到Class有四个成员变量，分别为 isa，superclass，cache和bits，主角是bits。通过内存平移我们拿到了bits的内存地址，之后我们观察class_data_bits_t的源码得知，调用data方法可以拿到结构为class_rw_t的数据，再次观察class_rw_t的源码得知class_rw_t里有获取我们对象的属性、方法和协议，最后通过lldb打印一一证明了。
+     因为一开始探究的时候，就是通过 SHPerson class对象来探究Class的，现在对Class已经有一个初步的了解了，并且，通过这次探究，得知class对象有isa，superclass，属性信息，对象方法信息，协议信息，成员变量信息等。
  */
 
 #import <Foundation/Foundation.h>
