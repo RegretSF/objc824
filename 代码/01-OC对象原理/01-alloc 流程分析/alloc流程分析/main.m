@@ -57,18 +57,8 @@
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        /*
-         ios 端为小端模式，所以在读取内存的时候从右往左读。
-         */
-        SHPerson *person = [SHPerson alloc];
-        person.name = @"zhan san";
-        person.nickName = @"z s";
-        person.age = 18;
-        person.height = 180;
-        
-        // 16+16+8+8 = 
-        
-        NSLog(@"%zd，%zd，%zd", sizeof(person), class_getInstanceSize(person.class), malloc_size((__bridge const void *)(person)));
+        NSObject *objc = [[NSObject alloc] init];
+        NSLog(@"sizeof：%zd，class_getInstanceSize：%zd，malloc_size：%zd", sizeof(objc), class_getInstanceSize(objc.class), malloc_size((__bridge const void *)(objc)));
     }
     return 0;
 }

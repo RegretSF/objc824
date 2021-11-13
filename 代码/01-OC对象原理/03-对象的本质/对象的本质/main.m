@@ -43,7 +43,7 @@
     extern "C" __declspec(dllimport) void objc_setProperty (id, SEL, long, id, bool, bool);
     static void _I_SHPerson_setName_(SHPerson * self, SEL _cmd, NSString *name) { objc_setProperty (self, _cmd, __OFFSETOFIVAR__(struct SHPerson, _name), (id)name, 0, 1); }
  
-    应该是系统针对不同的修饰符做了不同的处理。
+    这是因为系统在对用 copy 修饰的属性进行了特殊的处理。
     
     3. 在平时写的 OC 写的 setter 和 getter 中，发现并没有 SHPerson * self, SEL _cmd 这两个参数，但 clang 编译成的 C++ 文件中有。得知， SHPerson * self, SEL _cmd 是这两个方法的隐藏参数，这也就是为什么我们在实例方法里面都可以使用 self 的原因。
  

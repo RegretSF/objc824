@@ -171,6 +171,10 @@ isa的内存大小 + superclass的内存大小 + cache的内存大小
 @implementation SHPerson
 - (void)setNickname:(NSString *)name {
 }
+
++ (instancetype)person {
+    return [[SHPerson alloc] init];
+}
 @end
 
 int main(int argc, const char * argv[]) {
