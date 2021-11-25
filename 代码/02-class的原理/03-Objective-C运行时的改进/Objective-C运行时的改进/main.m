@@ -77,10 +77,14 @@
  当你使用这些 API 访问信息时，你知道，无论我们在后台进行什么更改，它们都将继续工作，所有的 API 都可以在 Objective-C 运行时说明文档中找到。
  https://developer.apple.com/documentation/objectivec/objective-c_runtime
  
- 
-
- 
  二、Objective-C方法列表的变化
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/03-Objective-C运行时的改进/Objective-C运行时的改进/方法列表.png
+ 
+ 每一个类都附带一个方法列表，当你在类上编写新方法时，它就会被添加到列表中。运行时使用这些列表来解析消息发送，每个方法都包含三个信息。
+ 首先是方法的名称，或者说选择器，选择器时字符串，但它们具有唯一性，所以它们可以使用指针相等来进行比较。
+ 接下来时方法的类型编码，这是一个表示参数和返回类型的字符串，它不是用来发送消息的，但它时运行时 introspection 和消息 forwarding 所必需的东西。
+ 最后，还有一个指向方法实现的指针，方法的实际代码，当你编写一个方法时，它会编译成一个 c 函数，其中包含你的实施，然后方法列表中的 entry 会指向该函数
+ 
  三、tagged pointer 格式的变化
  
  */
