@@ -23,6 +23,14 @@ int main(int argc, const char * argv[]) {
     @autoreleasepool {
         // insert code here...
         SHPerson *p = [SHPerson alloc];
+        NSLog(@"%@", p);
+        
+        
+        
+        
+        
+        
+        
         
         struct sh_objc_class *p_class = (__bridge struct sh_objc_class *)([SHPerson class]);
         print_sel_and_imp(p_class);
@@ -44,7 +52,7 @@ int main(int argc, const char * argv[]) {
 /**
  cache_t
  
- 在分析类的结构时我们知道类中有 cache_t cache 这个成员变量，通过名称我们大概能猜到是缓存，但是时缓存什么呢？
+ 在分析类的结构时我们知道类中有 cache_t cache 这个成员变量，通过名称我们大概能猜到是缓存，但是缓存什么呢？
  来看一下源码中 cache_t 的结构：
  /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/02-class的原理/05-cache_t 分析/cache_t分析/cache_t源码结构.png
  
@@ -169,6 +177,131 @@ int main(int argc, const char * argv[]) {
  ```
  
  源码很长，但我们发现，bucket_t 中有 _imp 和 _sel 两个成员变量，并且，还有 sel，rawImp，imp方法。所以 bucket_t 存放着方法的 IMP(方法地址) 和 SEL(方法编号) ,并且我们可以通过 sel 方法和 imp 方法拿到对应的 IMP 和 SEL。
+ 这个时候我们知道 cache_t 是用来缓存方法的，bucket_t 存的是 IMP 和 SEL 相关的，假如我们要存放很多个方法呢？一个 bucket_t 只能存放一个 IMP 和一个 SEL，那怎么能存放更多的方法呢？
+ 在 cache_t 中有这么一个方法：
+ ```
+ struct bucket_t *buckets() const;
+ ```
  
- bucket_t 存的是 IMP 和 SEL 相关的，假如我们要存放很多个方法呢？一个 bucket_t 只能存放一个 IMP 和一个 SEL，
+ 这个方法是获取所有的缓存中的 bucket_t，可它是一个结构体指针，怎么回事呢？还记得我们前面讲到的内存平移的么，接下来我们通过llbd的方式进行内存平移，拿到 SEL 和 IMP 。
+ 
+ ## 三、lldb 获取 cache_t 中缓存的 SEL 和 IMP
+ 先定义一个 SHPerson 对象，并添加方法。
+ ```
+ @interface SHPerson : NSObject
+ - (void)play_basketball;
+ - (void)play_football;
+ - (void)play_badminton;
+ - (void)play_volleyball;
+ - (void)play_table_tennis;
+ @end
+ 
+ @implementation SHPerson
+ - (void)play_basketball {
+     NSLog(@"%s", __func__);
+ }
+
+ - (void)play_football {
+     NSLog(@"%s", __func__);
+ }
+
+ - (void)play_badminton {
+     NSLog(@"%s", __func__);
+ }
+
+ - (void)play_volleyball {
+     NSLog(@"%s", __func__);
+ }
+
+ - (void)play_table_tennis {
+     NSLog(@"%s", __func__);
+ }
+ @end
+ ```
+ 
+ 接下来我们 alloc 一下，并且打个断点，打印出 cache_t 的结构，再调用 buckets() 拿到 bucket_t*。这里需要注意的是先不要 init，减少不必要的干扰。
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t分析/cache_t在内存中的结构.png
+
+ 我们发现 bucket_t 的 _sel 等于 nil，_imp 等于 0，并且 _maybeMask 和 _occupied 的值都为0，会不会是我们没有调用方法的原因呢？
+ 接下来我们调用 play_basketball 方法，再取 bucket_t* 试试。
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t分析/调用方法后再次打印 bucket_t 的内存.png
+ 
+ 首先 bucket_t * 的内存地址由 0x00000001003623d0 变成了 0x000000010175ef30，其次 _sel 和 _imp 都有值了，接下来调用 imp 方法打印出 _imp 的值，看看是否是我们调用后的 play_basketball 方法。
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t分析/$6.imp($5,[SHPerson class]) 打印.png
+ 
+ 成功的打印出 play_basketball 方法，那么我们再调用 play_football 方法。
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t分析/调用 play_football后打印 imp.png
+ 
+ 我们看到再次打印 bucket_t的 imp 没有变化，然后想到了内存平移，但 p *($9+1) 打印出的 bucket_t 并不是我们想象的 play_football 方法，而是一个 class 的系统方法，那我们再平移，p *($9+2)，打印的才是我们的 play_football 方法。
+ 到这里我们知道，bucket_t* 缓存的方法并不是按顺序进行存储的吧。
+ 
+ ## 四、验证 _bucketsAndMaybeMask 是否是 bucket_t 指针
+ 还记得第一点里源码分析 _bucketsAndMaybeMask 吗？，_bucketsAndMaybeMask 是 bucket_t 指针，我们重新运行，来验证一下。
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t分析/_bucketsAndMaybeMask验证.png
+ 
+ 我们发现，_bucketsAndMaybeMask 的地址和 bucket_t* 内存地址一摸一样，由此可见，_bucketsAndMaybeMask 存放的确实是 bucket_t 指针，并且，是 bucket_t* 的首地址，因为我们还可以通过内存平移拿到别的方法。
+ 另外 _occupied 和 _maybeMask 有值了，我们知道 _maybeMask 是一个掩码，那么 _occupied 是什么呢？方法是如何插入到 bucket_t* 的呢？我们来继续探索下一个内容。
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 但从性能的角度上思考，这个 bucket_t* 不一定是通过内存平移按顺序存储方法的，那么它是怎么存到 bucket_t* 的呢？
+ 在 cache_t 中有这么一个方法：
+ ```
+ // 第一个参数：传一个 SEL(方法编号)
+ // 第二个参数：传一个 IMP(方法地址)
+ // 第三个参数：传一个 id 对象，接收者
+ void insert(SEL sel, IMP imp, id receiver);
+ ```
+ 
  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
