@@ -172,6 +172,7 @@
 		96FBBF27274CDB250003F13B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 96FBBF26274CDB250003F13B /* Assets.xcassets */; };
 		96FBBF2A274CDB250003F13B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 96FBBF28274CDB250003F13B /* LaunchScreen.storyboard */; };
 		96FBBF2D274CDB250003F13B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 96FBBF2C274CDB250003F13B /* main.m */; };
+		96FBBF33274F5CA80003F13B /* SHPerson.m in Sources */ = {isa = PBXBuildFile; fileRef = 96FBBF32274F5CA80003F13B /* SHPerson.m */; };
 		C22F5208230EF38B001BFE14 /* objc-ptrauth.h in Headers */ = {isa = PBXBuildFile; fileRef = C22F5207230EF38B001BFE14 /* objc-ptrauth.h */; };
 		C2E6D3FC2225DCF00059DFAA /* DenseMapExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = C2E6D3FB2225DCF00059DFAA /* DenseMapExtras.h */; };
 		C2EB731D23D8A38A0040672B /* dummy-library-mac-i386.c in Sources */ = {isa = PBXBuildFile; fileRef = C2EB731C23D8A38A0040672B /* dummy-library-mac-i386.c */; };
@@ -386,6 +387,9 @@
 		96FBBF29274CDB250003F13B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		96FBBF2B274CDB250003F13B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		96FBBF2C274CDB250003F13B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		96FBBF31274F5CA80003F13B /* SHPerson.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SHPerson.h; sourceTree = "<group>"; };
+		96FBBF32274F5CA80003F13B /* SHPerson.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SHPerson.m; sourceTree = "<group>"; };
+		96FBBF37274F5D650003F13B /* sh_objc_class.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sh_objc_class.h; sourceTree = "<group>"; };
 		BC8B5D1212D3D48100C78A5B /* libauto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libauto.dylib; path = /usr/lib/libauto.dylib; sourceTree = "<absolute>"; };
 		C217B55222DE556D004369BA /* objc-env.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "objc-env.h"; path = "runtime/objc-env.h"; sourceTree = "<group>"; };
 		C2296C682457336C003FAE61 /* objc-bp-assist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "objc-bp-assist.h"; path = "runtime/objc-bp-assist.h"; sourceTree = "<group>"; };
@@ -735,6 +739,9 @@
 			isa = PBXGroup;
 			children = (
 				96FBBF0C274CC2BB0003F13B /* main.m */,
+				96FBBF31274F5CA80003F13B /* SHPerson.h */,
+				96FBBF32274F5CA80003F13B /* SHPerson.m */,
+				96FBBF37274F5D650003F13B /* sh_objc_class.h */,
 			);
 			path = "cache_t分析";
 			sourceTree = "<group>";
@@ -1097,6 +1104,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				96FBBF0D274CC2BB0003F13B /* main.m in Sources */,
+				96FBBF33274F5CA80003F13B /* SHPerson.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
