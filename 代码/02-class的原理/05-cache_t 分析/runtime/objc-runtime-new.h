@@ -357,9 +357,9 @@ private:
     // _bucketsAndMaybeMask is a buckets_t pointer
     // _maybeMask is the buckets mask
 
-    static constexpr uintptr_t bucketsMask = ~0ul;
+    static constexpr uintptr_t bucketsMask = ~0ul;  // bucketsMask：非0
     static_assert(!CONFIG_USE_PREOPT_CACHES, "preoptimized caches not supported");
-#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16_BIG_ADDRS
+#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16_BIG_ADDRS    // macOS、模拟器
     static constexpr uintptr_t maskShift = 48;
     static constexpr uintptr_t maxMask = ((uintptr_t)1 << (64 - maskShift)) - 1;
     static constexpr uintptr_t bucketsMask = ((uintptr_t)1 << maskShift) - 1;
@@ -369,7 +369,7 @@ private:
     static constexpr uintptr_t preoptBucketsMarker = 1ul;
     static constexpr uintptr_t preoptBucketsMask = bucketsMask & ~preoptBucketsMarker;
 #endif
-#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16
+#elif CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16  // 真机环境-高16位
     // _bucketsAndMaybeMask is a buckets_t pointer in the low 48 bits
     // _maybeMask is unused, the mask is stored in the top 16 bits.
 
