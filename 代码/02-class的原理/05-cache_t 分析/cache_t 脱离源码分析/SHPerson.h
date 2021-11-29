@@ -10,10 +10,9 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface SHPerson : NSObject
-- (void)play_basketball;
-- (void)play_football;
-- (void)play_badminton;
-- (void)play_volleyball;
-- (void)play_table_tennis;
+- (void)play1;
+- (void)play2;
+- (void)play3;
+- (void)play4;
 @end
 NS_ASSUME_NONNULL_END

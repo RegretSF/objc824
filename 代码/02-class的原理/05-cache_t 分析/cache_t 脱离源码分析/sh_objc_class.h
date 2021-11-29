@@ -5,41 +5,20 @@
 //  Created by TT-Fangss on 2021/11/25.
 //
 #import <Foundation/Foundation.h>
-
-struct sh_preopt_cache_entry_t {
-    uint32_t sel_offs;
-    uint32_t imp_offs;
-};
-
-struct sh_preopt_cache_t {
-    int32_t  fallback_class_offset;
-    union {
-        struct {
-            uint16_t shift       :  5;
-            uint16_t mask        : 11;
-        };
-        uint16_t hash_params;
-    };
-    uint16_t occupied    : 14;
-    uint16_t has_inlines :  1;
-    uint16_t bit_one     :  1;
-    struct sh_preopt_cache_entry_t entries[];
-};
+typedef uint32_t mask_t;  // x86_64 & arm64 asm are less efficient with 16-bits
 
 struct sh_bucket_t {
-    IMP _imp;
     SEL _sel;
+    IMP _imp;
 };
 
 struct sh_cache_t {
     struct sh_bucket_t *_buckets;
     
-    uint32_t    _maybeMask;
+    mask_t    _maybeMask;
     
     uint16_t _flags;
     uint16_t _occupied;
-    
-    struct sh_preopt_cache_t * _originalPreoptCache;
 };
 
 struct sh_class_data_bits_t {

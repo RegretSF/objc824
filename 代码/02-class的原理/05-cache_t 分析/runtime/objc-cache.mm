@@ -239,10 +239,12 @@ uintptr_t objc_opt_offsets[__OBJC_OPT_OFFSETS_COUNT];
 
 #if CACHE_END_MARKER
 static inline mask_t cache_next(mask_t i, mask_t mask) {
+    // （将当前的哈希下标 + 1）& mask，重新进行哈希计算，得到一个新的下标。
     return (i+1) & mask;
 }
 #elif __arm64__
 static inline mask_t cache_next(mask_t i, mask_t mask) {
+    // 如果 i 是 null，则等于 mask（mask = capacity - 1），否则向前一个下标（i-1）。
     return i ? i-1 : mask;
 }
 #else
@@ -308,8 +310,10 @@ static inline mask_t cache_hash(SEL sel, mask_t mask)
 {
     uintptr_t value = (uintptr_t)sel;
 #if CONFIG_USE_PREOPT_CACHES
+    // 如果使用缓存
     value ^= value >> 7;
 #endif
+    // 通过 sel & mask (),即 _maybeMask = capacity - 1
     return (mask_t)(value & mask);
 }
 
@@ -761,7 +765,9 @@ bool cache_t::canBeFreed() const
 ALWAYS_INLINE
 void cache_t::reallocate(mask_t oldCapacity, mask_t newCapacity, bool freeOld)
 {
+    // 取出旧的 buckets
     bucket_t *oldBuckets = buckets();
+    // 开辟一个新的 buckets
     bucket_t *newBuckets = allocateBuckets(newCapacity);
 
     // Cache's old contents are not propagated. 
@@ -771,8 +777,10 @@ void cache_t::reallocate(mask_t oldCapacity, mask_t newCapacity, bool freeOld)
     ASSERT(newCapacity > 0);
     ASSERT((uintptr_t)(mask_t)(newCapacity-1) == newCapacity-1);
 
+    // 将 buckets 存入缓存中
     setBucketsAndMask(newBuckets, newCapacity - 1);
     
+    // 如果有旧的 buckets，进行清除处理
     if (freeOld) {
         collect_free(oldBuckets, oldCapacity);
     }
@@ -847,47 +855,79 @@ void cache_t::insert(SEL sel, IMP imp, id receiver)
     ASSERT(sel != 0 && cls()->isInitialized());
 
     // Use the cache as-is if until we exceed our expected fill ratio.
+    // 1.计算出当前的缓存占用量
+    // 没有属性赋值的情况下 occupied() == 0, newOccupied == 1。
     mask_t newOccupied = occupied() + 1;
     unsigned oldCapacity = capacity(), capacity = oldCapacity;
+    
+    // 2.根据缓存占用量判断执行的操作
+    // 2.1 初始化创建
     if (slowpath(isConstantEmptyCache())) {
+        // 小概率发生的，即当 occupied() == 0时，创建缓存，创建属于小概率事件
+        
         // Cache is read-only. Replace it.
+        // 初始化时，capacity == 4(1 << 2)。
         if (!capacity) capacity = INIT_CACHE_SIZE;
+        // 开辟空间
         reallocate(oldCapacity, capacity, /* freeOld */false);
     }
     else if (fastpath(newOccupied + CACHE_END_MARKER <= cache_fill_ratio(capacity))) {
         // Cache is less than 3/4 or 7/8 full. Use it as-is.
+        
+        /*
+         static inline mask_t cache_fill_ratio(mask_t capacity) {
+             return capacity * 3 / 4;
+         }
+         */
+        // 2.2
+        // 如果小于等于占用内存的 3/4 或者满 7/8 就什么都不做。
+        // 第一次时，申请开辟的内存是4个，如果此时已经有3个从 bucket 插入到 cache 里面，再插入一个就是 4 个。
+        // 当大于 4(当前下标为4)，就越界了，所以要在原来的容量上进行两倍扩容。
     }
 #if CACHE_ALLOW_FULL_UTILIZATION
     else if (capacity <= FULL_UTILIZATION_CACHE_SIZE && newOccupied + CACHE_END_MARKER <= capacity) {
         // Allow 100% cache utilization for small buckets. Use it as-is.
     }
 #endif
-    else {
+    // 2.3
+    else {  // 如果超出 3/4，进行两倍扩容
         capacity = capacity ? capacity * 2 : INIT_CACHE_SIZE;
         if (capacity > MAX_CACHE_SIZE) {
             capacity = MAX_CACHE_SIZE;
         }
+        // 走到这里表示曾经有，但是已满了，需要重新梳理
         reallocate(oldCapacity, capacity, true);
     }
 
+    // 3. 针对需要存储的bucket进行内部imp和sel赋值
     bucket_t *b = buckets();
-    mask_t m = capacity - 1;
+    mask_t m = capacity - 1;    // mask = capacity - 1
+    // 3.1 求 cache 哈希，即哈希下标---通过哈希算法函数计算 sel 存储的下标。
     mask_t begin = cache_hash(sel, m);
     mask_t i = begin;
 
     // Scan for the first unused slot and insert there.
     // There is guaranteed to be an empty slot.
+    // 3.2 如果存在哈希冲突，则从冲突的下标开始遍历 do-while
     do {
+        // 3.3 第一个插槽未使用，将 bucket 插入第一个插槽。
+        // 即遍历的下标拿不到 sel，表示当前没有存储 bucket，可以在第一个插槽存储。
         if (fastpath(b[i].sel() == 0)) {
+            // _occupied++;
             incrementOccupied();
+            // 将 bucket 插入
             b[i].set<Atomic, Encoded>(b, sel, imp, cls());
             return;
         }
+        
+        // 3.4 如果将要插入的卡槽中存有 sel 并且等于要插入的 sel，直接返回
         if (b[i].sel() == sel) {
             // The entry was added to the cache by some other thread
             // before we grabbed the cacheUpdateLock.
             return;
         }
+        
+        // 3.5 如果当前下标有 sel，且和准备插入的 sel不相等，需要重新进行哈希计算，得到新下标，遍历。
     } while (fastpath((i = cache_next(i, m)) != begin));
 
     bad_cache(receiver, (SEL)sel);
@@ -1205,11 +1245,12 @@ static void _garbage_make_room(void)
     }
 
     // Double the table if it is full
+    // 进行两倍扩容，capacity进行的两倍扩容，实际的内存也需要两倍扩容
     else if (garbage_count == garbage_max)
     {
         garbage_refs = (bucket_t**)
             realloc(garbage_refs, garbage_max * 2 * sizeof(void *));
-        garbage_max *= 2;
+        garbage_max *= 2; // 系统空间也需要增加内存段
     }
 }
 
@@ -1231,9 +1272,12 @@ void cache_t::collect_free(bucket_t *data, mask_t capacity)
 
     if (PrintCaches) recordDeadCache(capacity);
 
+    // 创建垃圾回收空间
     _garbage_make_room ();
     garbage_byte_size += cache_t::bytesForCapacity(capacity);
+    // 将 sel-imp存在后置的位置
     garbage_refs[garbage_count++] = data;
+    // 开始清理 buckets
     cache_t::collectNolock(false);
 }
 

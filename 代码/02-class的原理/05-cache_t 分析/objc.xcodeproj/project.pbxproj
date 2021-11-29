@@ -387,7 +387,6 @@
 		96FBBF0C274CC2BB0003F13B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		96FBBF31274F5CA80003F13B /* SHPerson.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SHPerson.h; sourceTree = "<group>"; };
 		96FBBF32274F5CA80003F13B /* SHPerson.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SHPerson.m; sourceTree = "<group>"; };
-		96FBBF37274F5D650003F13B /* sh_objc_class.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sh_objc_class.h; sourceTree = "<group>"; };
 		BC8B5D1212D3D48100C78A5B /* libauto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libauto.dylib; path = /usr/lib/libauto.dylib; sourceTree = "<absolute>"; };
 		C217B55222DE556D004369BA /* objc-env.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "objc-env.h"; path = "runtime/objc-env.h"; sourceTree = "<group>"; };
 		C2296C682457336C003FAE61 /* objc-bp-assist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "objc-bp-assist.h"; path = "runtime/objc-bp-assist.h"; sourceTree = "<group>"; };
@@ -751,7 +750,6 @@
 				96FBBF0C274CC2BB0003F13B /* main.m */,
 				96FBBF31274F5CA80003F13B /* SHPerson.h */,
 				96FBBF32274F5CA80003F13B /* SHPerson.m */,
-				96FBBF37274F5D650003F13B /* sh_objc_class.h */,
 			);
 			path = "cache_t分析";
 			sourceTree = "<group>";

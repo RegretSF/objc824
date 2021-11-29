@@ -8,23 +8,23 @@
 #import "SHPerson.h"
 
 @implementation SHPerson
-- (void)play_basketball {
+- (void)play1 {
     NSLog(@"%s", __func__);
 }
 
-- (void)play_football {
+- (void)play2 {
     NSLog(@"%s", __func__);
 }
 
-- (void)play_badminton {
+- (void)play3 {
     NSLog(@"%s", __func__);
 }
 
-- (void)play_volleyball {
+- (void)play4 {
     NSLog(@"%s", __func__);
 }
 
-- (void)play_table_tennis {
+- (void)play5 {
     NSLog(@"%s", __func__);
 }
 @end
