@@ -368,3 +368,43 @@ int main(int argc, const char * argv[]) {
     return 0;
 }
 
+/*
+ # objc-cache.mm 的注解翻译。
+ 
+ 分析完了 cache_t 我们来看一下 cache _t 的 objc-cache.mm 的实现文件中，最顶部的注释，并且将这些注释翻译一下。
+ /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t 脱离源码分析/objc_cache.mm 的 注解.png
+
+ objc-cache.mm 的实现功能
+ * 方法缓存管理
+ * 缓存刷新
+ * 缓存垃圾收集
+ * 缓存检测
+ * 大缓存专用分配器
+ 
+ ## 一、方法缓存锁定
+ * 为了速度，objc_msgSend 读取时不获取任何锁方法缓存。相反，会执行所有缓存更改，以便任何objc_msgSend 与缓存修改器同时运行不会崩溃、挂起或从缓存中获得不正确的结果。
+ * 当缓存内存未使用时（例如缓存后的旧缓存扩展），它不会立即释放，因为并发的objc_msgSend可能仍在使用它。相反，内存与数据结构断开连接并放置在垃圾列表中。
+ * 内存现在只能被内存断开时正在运行的 objc_msgSend 实例访问；任何对 objc_msgSend 的进一步调用都不会看到垃圾内存，因为其他数据结构不再指向它。
+ * collect_in_critical 函数检查所有线程的 PC，当发现所有线程都在 objc_msgSend 之外时返回 FALSE。这意味着任何可以访问垃圾的 objc_msgSend 调用都已完成或移动到缓存查找阶段，因此释放内存是安全的。
+ * 所有修改缓存数据或结构的函数都必须获取 cacheUpdateLock 以防止并发修改的干扰。释放缓存垃圾的函数必须获取cacheUpdateLock 并使用collection_in_critical() 来刷新缓存读取器。
+ * cacheUpdateLock 还用于保护用于大型方法缓存块的自定义分配器。
+ 
+ ## 二、读取缓存（通过collection_in_critical() 进行PC 检查）
+ objc_msgSend
+ cache_getImp
+ 
+ ## 三、读/写缓存（在访问期间保持 cacheUpdateLock ；未通过 PC 检查）
+ * cache_t::copyCacheNolock (调用者必须持有锁)
+ * cache_t::eraseNolock (调用者必须持有锁)
+ * cache_t::collectNolock (调用者必须持有锁)
+ * cache_t::insert（获取锁）
+ * cache_t::destroy（获取锁）
+ 
+ ## 四、 UNPROTECTED 读取缓存（线程不安全；仅用于调试信息）
+ * cache_print
+ * _class_printMethodCaches
+ * _class_printDuplicateCacheEntries
+ * _class_printMethodCacheStatistics
+ 
+ 看了苹果官方的注解，大概明白了，底层在进行方法的缓存、读取的时候，用到一个很重要的方法：objc_msgSend。并且，我们 insert 之前会调用 cache_getImp检查有没有缓存。
+ */
