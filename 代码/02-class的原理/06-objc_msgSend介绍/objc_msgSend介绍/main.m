@@ -87,6 +87,37 @@
      setter(targetList[i], @selector(setFilled:), YES);
  ```
  
+ ## 三、动态方法解析
+ 
+ ### 1. 动态方法的解析
+ 实现 resolveInstanceMethod: 和 resolveClassMethod: 方法分别为实例和类方法的给定选择器动态提供实现。
+ 
+ Objective-C 方法只是一个 C 函数，它至少接受两个参数：self和_cmd，可以使用 class_addMethod 将函数作为方法添加到类中。下面是一个将要动态的添加到类的C函数：
+ ```swift
+ void dynamicMethodIMP(id self, SEL _cmd) {
+     // implementation ....
+ }
+ ```
+ 
+ 实现 resolveInstanceMethod: 方法将 dynamicMethodIMP 函数动态的添加到类中，称为动态解析此方法。
+ ```swift
+ @implementation MyClass
+ + (BOOL)resolveInstanceMethod:(SEL)aSEL
+ {
+     if (aSEL == @selector(resolveThisMethodDynamically)) {
+           class_addMethod([self class], aSEL, (IMP) dynamicMethodIMP, "v@:");
+           return YES;
+     }
+     return [super resolveInstanceMethod:aSEL];
+ }
+ @end
+ 
+ 消息转发和动态方法解析在很大程度上是正交的。如果调用respondsToSelector: 或instanceRespondToSelector:，则动态方法解析器有机会首先为选择器提供IMP。如果您实现了 resolveInstanceMethod: 但希望通过转发机制实际转发特定的选择器，则为这些选择器返回 NO。
+ ```
+ 
+ ### 2. 动态加载
+ Objective-C 程序可以在运行时加载和链接新的类和类别。新代码被合并到程序中，并与开始时加载的类和类别相同。
+ 
  
  */
 
