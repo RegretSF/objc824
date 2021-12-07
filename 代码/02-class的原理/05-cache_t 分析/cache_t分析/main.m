@@ -209,8 +209,17 @@ int main(int argc, const char * argv[]) {
  /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t分析/_bucketsAndMaybeMask验证.png
  
  我们发现，_bucketsAndMaybeMask 的地址和 bucket_t* 内存地址一摸一样，由此可见，_bucketsAndMaybeMask 存放的确实是 bucket_t 指针，并且，是 bucket_t* 的首地址，因为我们还可以通过内存平移拿到别的方法。
- 另外 _occupied 和 _maybeMask 有值了，我们知道 _maybeMask 是一个掩码，那么 _occupied 是什么呢？方法是如何插入到 bucket_t* 的？我们来继续探索下一个内容。
+ 另外 _occupied 和 _maybeMask 有值了，我们知道 _maybeMask 是一个掩码，那么 _occupied 是什么？方法是如何插入到 bucket_t* 的？我们来继续探索下一个内容。
+ 
+ ## 五、关于 _maybeMask 在不同架构的坑点
+ 注意：在探索的过程中，我的Mac电脑的芯片是 intel 的，intel 芯片的电脑在探索的时候 _maybeMask 的值是会变化的。如果你用的是 M1 芯片的Mac电脑，那么坑就来了，_maybeMask 的值是不会变的，那就意味着我们拿不到 _maybeMask 的值进行下一步的探索。
+ 
+ 在 cache_t 结构体中，有一个 mask 方法：
+ ```swift
+ mask_t mask() const;
  ```
+ 
+ 经过测试，mask 返回的值就是 _maybeMask 的值，所以在用 M1 芯片的电脑探索的时候，拿不到 _maybeMask 的值就调用 mask方法拿到返回值当作 _maybeMask 使用。
  
  */
 
