@@ -555,19 +555,28 @@ _objc_debug_taggedpointer_classes:
 
 //- p0 和空对比，即判断接收者是否存在，其中 p0 是 objc_msgSend 的第一个参数-receiver
 	cmp	p0, #0			// nil check and tagged pointer check
+
+//- le小于 --支持tagged pointer（小对象类型）的流程
 #if SUPPORT_TAGGED_POINTERS
 	b.le	LNilOrTagged		//  (MSB tagged pointer looks negative)
 #else
+//- p0 等于 0 时，直接返回 空
 	b.eq	LReturnZero
 #endif
+
+//- p0即receiver 肯定存在的流程
+//- 根据对象拿出isa ，即从x0寄存器指向的地址 取出 isa，存入 p13 寄存器
 	ldr	p13, [x0]		// p13 = isa
+//- 在64位架构下通过 p16 = isa（p13） & ISA_MASK，拿出shiftcls信息，得到class信息
 	GetClassFromIsa_p16 p13, 1, x0	// p16 = class
 LGetIsaDone:
 	// calls imp or objc_msgSend_uncached
+//- 如果有isa，走到CacheLookup 即缓存查找流程，也就是所谓的sel-imp快速查找流程
 	CacheLookup NORMAL, _objc_msgSend, __objc_msgSend_uncached
 
 #if SUPPORT_TAGGED_POINTERS
 LNilOrTagged:
+//- 等于空，返回空
 	b.eq	LReturnZero		// nil check
 	GetTaggedClass
 	b	LGetIsaDone
