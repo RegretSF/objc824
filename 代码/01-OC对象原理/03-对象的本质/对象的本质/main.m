@@ -235,9 +235,14 @@ struct SHTeacher2 {
 
 @interface SHPerson : NSObject
 @property (nonatomic, copy) NSString *name;
+
+- (void)run;
 @end
 
 @implementation SHPerson
+- (void)run {
+    NSLog(@"%s",__func__);
+}
 @end
 
 int main(int argc, const char * argv[]) {
@@ -256,6 +261,7 @@ int main(int argc, const char * argv[]) {
 //        t2.age = 18;
         
         SHPerson *person = [SHPerson alloc];
+        [person run];
         NSLog(@"%zd，%zd，%zd", sizeof(person), class_getInstanceSize(person.class), malloc_size((__bridge const void *)(person)));
     }
     return 0;

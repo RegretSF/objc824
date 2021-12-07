@@ -106,7 +106,8 @@ struct __AtAutoreleasePool {
 };
 
 #define __OFFSETOFIVAR__(TYPE, MEMBER) ((long long) &((TYPE *)0)->MEMBER)
-static __NSConstantStringImpl __NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_5b3d6e_mi_0 __attribute__ ((section ("__DATA, __cfstring"))) = {__CFConstantStringClassReference,0x000007c8,"%zd\357\274\214%zd\357\274\214%zd",15};
+static __NSConstantStringImpl __NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_1df251_mi_0 __attribute__ ((section ("__DATA, __cfstring"))) = {__CFConstantStringClassReference,0x000007c8,"%s",2};
+static __NSConstantStringImpl __NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_1df251_mi_1 __attribute__ ((section ("__DATA, __cfstring"))) = {__CFConstantStringClassReference,0x000007c8,"%zd\357\274\214%zd\357\274\214%zd",15};
 
 
 
@@ -37252,6 +37253,31 @@ extern void malloc_zone_discharge(malloc_zone_t *zone, void *memory) __attribute
 
 extern void malloc_zone_enumerate_discharged_pointers(malloc_zone_t *zone, void (*report_discharged)(void *memory, void *info)) __attribute__((availability(ios,introduced=4.3)));
 }
+struct SHCar1 {
+    BOOL front;
+    BOOL back;
+    BOOL left;
+    BOOL right;
+};
+
+
+struct SHCar2 {
+    BOOL front: 1;
+    BOOL back : 1;
+    BOOL left : 1;
+    BOOL right: 1;
+};
+union SHTeacher1 {
+    char *name;
+    int age;
+};
+
+
+struct SHTeacher2 {
+    char *name;
+    int age;
+};
+
 
 #ifndef _REWRITER_typedef_SHPerson
 #define _REWRITER_typedef_SHPerson
@@ -37266,10 +37292,16 @@ struct SHPerson_IMPL {
 };
 
 // @property (nonatomic, copy) NSString *name;
+
+// - (void)run;
 /* @end */
 
 
 // @implementation SHPerson
+
+static void _I_SHPerson_run(SHPerson * self, SEL _cmd) {
+    NSLog((NSString *)&__NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_1df251_mi_0,__func__);
+}
 
 static NSString * _I_SHPerson_name(SHPerson * self, SEL _cmd) { return (*(NSString **)((char *)self + OBJC_IVAR_$_SHPerson$_name)); }
 extern "C" __declspec(dllimport) void objc_setProperty (id, SEL, long, id, bool, bool);
@@ -37279,12 +37311,9 @@ static void _I_SHPerson_setName_(SHPerson * self, SEL _cmd, NSString *name) { ob
 
 int main(int argc, const char * argv[]) {
     /* @autoreleasepool */ { __AtAutoreleasePool __autoreleasepool; 
-
-
-
         SHPerson *person = ((SHPerson *(*)(id, SEL))(void *)objc_msgSend)((id)objc_getClass("SHPerson"), sel_registerName("alloc"));
-
-        NSLog((NSString *)&__NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_5b3d6e_mi_0, sizeof(person), class_getInstanceSize(((Class (*)(id, SEL))(void *)objc_msgSend)((id)person, sel_registerName("class"))), malloc_size((__bridge const void *)(person)));
+        ((void (*)(id, SEL))(void *)objc_msgSend)((id)person, sel_registerName("run"));
+        NSLog((NSString *)&__NSConstantStringImpl__var_folders_x7_pxwzd_nd3nndkxfprqkq7bcw0000gn_T_main_1df251_mi_1, sizeof(person), class_getInstanceSize(((Class (*)(id, SEL))(void *)objc_msgSend)((id)person, sel_registerName("class"))), malloc_size((__bridge const void *)(person)));
     }
     return 0;
 }
@@ -37371,11 +37400,12 @@ static struct /*_ivar_list_t*/ {
 static struct /*_method_list_t*/ {
 	unsigned int entsize;  // sizeof(struct _objc_method)
 	unsigned int method_count;
-	struct _objc_method method_list[4];
+	struct _objc_method method_list[5];
 } _OBJC_$_INSTANCE_METHODS_SHPerson __attribute__ ((used, section ("__DATA,__objc_const"))) = {
 	sizeof(_objc_method),
-	4,
-	{{(struct objc_selector *)"name", "@16@0:8", (void *)_I_SHPerson_name},
+	5,
+	{{(struct objc_selector *)"run", "v16@0:8", (void *)_I_SHPerson_run},
+	{(struct objc_selector *)"name", "@16@0:8", (void *)_I_SHPerson_name},
 	{(struct objc_selector *)"setName:", "v24@0:8@16", (void *)_I_SHPerson_setName_},
 	{(struct objc_selector *)"name", "@16@0:8", (void *)_I_SHPerson_name},
 	{(struct objc_selector *)"setName:", "v24@0:8@16", (void *)_I_SHPerson_setName_}}
