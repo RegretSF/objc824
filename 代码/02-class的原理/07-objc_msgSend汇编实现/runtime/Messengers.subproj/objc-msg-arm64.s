@@ -548,9 +548,12 @@ _objc_debug_taggedpointer_classes:
 .endmacro
 #endif
 
+//- 消息发送 -- 汇编入口-- objc_msgSend 主要是拿到接收者的isa信息
 	ENTRY _objc_msgSend
+//- 无窗口
 	UNWIND _objc_msgSend, NoFrame
 
+//- p0 和空对比，即判断接收者是否存在，其中 p0 是 objc_msgSend 的第一个参数-receiver
 	cmp	p0, #0			// nil check and tagged pointer check
 #if SUPPORT_TAGGED_POINTERS
 	b.le	LNilOrTagged		//  (MSB tagged pointer looks negative)
