@@ -111,6 +111,7 @@
      }
      return 0;
  }
+ ```
  
  我们来看一下打印结果：
  /Users/fatbrother/Fangss/Development/iOS/objc824/代码/02-class的原理/05-cache_t 分析/cache_t 脱离源码分析/打印结果.png
@@ -120,8 +121,8 @@
  2、_occupied 是什么？0-2-2
  3.bucket数据为什么会有丢失的情况？原来缓存的 play1 和 play2 去哪儿了。
  4.为什么缓存的方法是无序的？
- ```
  
+ 注意：M1 芯片的 Mac 电脑是拿不到 _maybeMask 的，并且在 M1 芯片的电脑同以上的方式强行取 _buckets 的值是不正常的。以上的脱离源码的打印，只是为了抛出上面四个疑问，所以在用 M1 芯片的电脑操作到这里的时候，不要纠结这个 _maybeMask。
  
  ## 二、insert(SEL sel, IMP imp, id receiver) 分析
  ```
