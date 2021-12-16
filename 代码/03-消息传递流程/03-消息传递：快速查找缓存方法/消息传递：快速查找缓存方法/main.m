@@ -119,7 +119,7 @@
  这一行代码的目的是为了拿到要查找的 sel 的下标的 bucket，通过拿到的 bucket 开始往前遍历查找是否有要查找的 sel。
  通过 bucket >= buckets 判断是否找到了 buckets 的第一个元素，如果找到第一个元素还是没匹配到要查找的 sel，流程继续往下走。
  
- 来看下下面的流程，看这段代码：
+ 下面的流程，看这段代码：
  ```swift
  // 这里是根据不同的环境，计算要开始重新查找的下标。
  #if CACHE_MASK_STORAGE == CACHE_MASK_STORAGE_HIGH_16_BIG_ADDRS
@@ -168,12 +168,44 @@
  ```
  
  前面第一次 do while 循环是查找传进来的 sel 的下标开始往前遍历 buckets，那么只能查找下标前面的 bucket。
- 那么如果在没找到要匹配的 sel，重新计算要开始查找的下标，也就是 后面要匹配的 sel 下标后面的 bucket。
+ 如果在没找到要匹配的 sel，重新计算要开始查找的下标，也就是 后面要匹配的 sel 下标后面的 bucket。
  所以才会继续拿到重新计算的下标，继续 do while 往下标前遍历，查找 sel。
  为了不重复遍历之前查找过的 bucket，就通过 (sel != 0 && bucket > first_probed) 条件判断，是否遍历到了第一次循环遍历的临界点，如果到达临界点，走下一个流程 __objc_msgSend_uncached。
  
- 到这里，消息传递流程的快速查找缓存方法到这里就结束了。
+ 如果在快速查找缓存方法的这个过程中，匹配到了 sel，就会执行 CacheHit（缓存命中），就是汇编代码的 2: 这一步。
+ ```swift
+ 2:    CacheHit \Mode                // hit:    call or return imp
+ ```
  
+ CacheHit 的汇编实现如下：
+ ```swift
+ //- 缓存命中
+ // CacheHit: x17 = cached IMP, x10 = address of buckets, x1 = SEL, x16 = isa
+ .macro CacheHit
+ .if $0 == NORMAL
+     TailCallCachedImp x17, x10, x1, x16    // authenticate and call imp
+ .elseif $0 == GETIMP
+     mov    p0, p17
+     cbz    p0, 9f            // don't ptrauth a nil imp
+     AuthAndResignAsIMP x0, x10, x1, x16    // authenticate imp and re-sign as IMP
+ 9:    ret                // return IMP
+ .elseif $0 == LOOKUP
+     // No nil check for ptrauth: the caller would crash anyway when they
+     // jump to a nil IMP. We don't care if that jump also fails ptrauth.
+     AuthAndResignAsIMP x17, x10, x1, x16    // authenticate imp and re-sign as IMP
+     cmp    x16, x15
+     cinc    x16, x16, ne            // x16 += 1 when x15 != x16 (for instrumentation ; fallback to the parent class)
+     ret                // return imp via x17
+ .else
+ .abort oops
+ .endif
+ .endmacro
+ ```
+ 
+ $0 是传进来的 Mode，那 Mode 的值是什么，Mode 的值是 CacheLookup 传进来的 Mode，Mode 的值为 NORMAL。
+ 所以在 CacheLookup 中调用 CacheHit 走的是第一个判断，验证并且调用 IMP。
+ 
+ 以上就是快速查找缓存方法的流程，如果在快速查找缓存方法的流程里匹配不到 sel，就会进入下一步：__objc_msgSend_uncached。
  */
 
 int main(int argc, const char * argv[]) {
