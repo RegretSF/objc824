@@ -5937,6 +5937,18 @@ class_setVersion(Class cls, int version)
 /***********************************************************************
  * search_method_list_inline
  **********************************************************************/
+/**
+ 二分查找：
+ 什么叫二分查找呢。
+ 举个例子：
+ 这里有一个区间 0～100，我需要找到 55 这个数的位置，按正常的逻辑用一个循环去遍历，也可以找到，但会有个问题，循环遍历需要一个一个的去找，会非常的消耗性能。
+ 如果用二分查找，是怎么查找呢。
+ 随便取一个数，比如 50 ，那么 50 是小于 55 。
+ 再取一个数，这个数是 50～100 区间内的数，比如 75，那么 75 大于 55 。
+ 再取一个数，50～75 区间内的数，比如 60，60 还是大于 55。
+ 再取一个数，50～60 区间内的数，比如 55，这个时候就找到了。
+ 那么通过这个二分查找呢，我们就用了 4 ，相比于循环一个一个去遍历是不是快了很多呢。
+ */
 template<class getNameFunc>
 ALWAYS_INLINE static method_t *
 findMethodInSortedMethodList(SEL key, const method_list_t *list, const getNameFunc &getName)
@@ -5949,22 +5961,43 @@ findMethodInSortedMethodList(SEL key, const method_list_t *list, const getNameFu
 
     uintptr_t keyValue = (uintptr_t)key;
     uint32_t count;
-    
+    /*
+     count >>= 1：右移一位。
+     假设 count = 8 -> 1000。
+     base = 0。
+     count 右移一位变成 0100 -> 4。
+     所以 probe = 0 + 4 = 4。
+     如果不匹配，并且 (keyValue > probeValue)，这个时候 count = 7，base = 5。
+     
+     下一次循环：
+     count = 7 -> 0111。右移一位：0011(3)，count = 3。
+     根据二分查找的规则，因为 (keyValue > probeValue)，那么 keyValue 正确位置应该在 base(5)~8 之间，它们之间只有两个数 6 和 7。
+     base = 5。
+     probe = 5 + (3 >> 1) = 6。
+     
+     取出来的位置正好是 5~8 之间，这就是二分查找法的代码实现。
+     */
     for (count = list->count; count != 0; count >>= 1) {
+        // 二分查找，取 base ~ count 的区间数。
         probe = base + (count >> 1);
         
+        // 取 sel
         uintptr_t probeValue = (uintptr_t)getName(probe);
-        
+        // 如果匹配
         if (keyValue == probeValue) {
             // `probe` is a match.
             // Rewind looking for the *first* occurrence of this value.
             // This is required for correct category overrides.
+            // 那么 sel 都匹配上了，为什么还要做一步 while 循环。
+            // 方法有可能是分类中的方法，并且和主类中的方法名字一模一样。
+            // 相当于主类中的方法被重写了 这个时候就考虑到调用顺序的问题。
             while (probe > first && keyValue == (uintptr_t)getName((probe - 1))) {
                 probe--;
             }
             return &*probe;
         }
         
+        // 如果不匹配
         if (keyValue > probeValue) {
             base = probe + 1;
             count--;
@@ -6387,7 +6420,7 @@ static IMP _lookUpImpTryCache(id inst, SEL sel, Class cls, int behavior)
     if (slowpath(imp == NULL)) {
         return lookUpImpOrForward(inst, sel, cls, behavior);
     }
-
+    
 done:
     if ((behavior & LOOKUP_NIL) && imp == (IMP)_objc_msgForward_impcache) {
         return nil;
@@ -6439,7 +6472,7 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
     // Otherwise, a category could be added but ignored indefinitely because
     // the cache was re-filled with the old value after the cache flush on
     // behalf of the category.
-
+    //加锁，目的是保证读取的线程安全
     runtimeLock.lock();
 
     // We don't want people to be able to craft a binary blob that looks like
@@ -6448,8 +6481,10 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
     // To make these harder we want to make sure this is a class that was
     // either built into the binary or legitimately registered through
     // objc_duplicateClass, objc_initializeClassPair or objc_allocateClassPair.
+    // 检查 cls 是否注册到当前的缓存表里（注册类）。
     checkIsKnownClass(cls);
 
+    // 类的初始化流程，主要是 isa 的流程初始化，比如对类的superclass和isa进行初始化，为的就是之后的查找方法。
     cls = realizeAndInitializeIfNeeded_locked(inst, cls, behavior & LOOKUP_INITIALIZE);
     // runtimeLock may have been dropped but is now locked again
     runtimeLock.assertLocked();
@@ -6461,25 +6496,45 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
     //
     // The only codepath calling into this without having performed some
     // kind of cache lookup is class_getInstanceMethod().
+    
+    // 慢速查找流程：
+    // 1. 查找自己的 methodlist
+    // 2. 查找父类->根类(NSObject)->nil
+    // 3. 结束 for 循环
 
+    // 核心重点!
+    // 这个 for 循环是一个死循环，因为没有 i < count; i++ 或者 i-- 这些条件判断。
+    // 如果要退出当前的死循环，需要有退出循环的语句，比如 break，goto 或者 return。
     for (unsigned attempts = unreasonableClassCount();;) {
+        // 快速查找缓存方法
         if (curClass->cache.isConstantOptimizedCache(/* strict */true)) {
 #if CONFIG_USE_PREOPT_CACHES
+            // cache_getImp 也是快速查找缓存方法的流程，它是在 CacheLookup 之后，慢速查找之前。
+            // 为什么在 CacheLookup 快速查找后还需要 调用 cache_getImp 进行快速查找。
+            // 因为如果在快速查找的过程中可能在对 class_rw_t 进行操作，那么就导致在第一次快速查找的时候会漏掉。
+            // 所以会在慢速查找之前调用 cache_getImp 再进行一次快速查找，以防万一。
             imp = cache_getImp(curClass, sel);
             if (imp) goto done_unlock;
             curClass = curClass->cache.preoptFallbackClass();
 #endif
         } else {
             // curClass method list.
+            // 二分查找法入口
             Method meth = getMethodNoSuper_nolock(curClass, sel);
+            // 如果找到 meth，跳转到 done
             if (meth) {
                 imp = meth->imp(false);
                 goto done;
             }
-
+            
+            // 如果没有找到，去父类查找。
+            // 注意！获取父类的是写在了 if 条件判断里：(curClass = curClass->getSuperclass()) == nil)
+            // 如果父类不为nil，继续往下走。
+            // 找到根类的 superclass 后，进行消息转发，退出循环。
             if (slowpath((curClass = curClass->getSuperclass()) == nil)) {
                 // No implementation found, and method resolver didn't help.
                 // Use forwarding.
+                // 没有找到，进行消息转发。
                 imp = forward_imp;
                 break;
             }
@@ -6491,6 +6546,7 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
         }
 
         // Superclass cache.
+        // 快速查找父类的缓存方法
         imp = cache_getImp(curClass, sel);
         if (slowpath(imp == forward_imp)) {
             // Found a forward:: entry in a superclass.
@@ -6498,6 +6554,8 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
             // resolver for this class first.
             break;
         }
+        
+        // 在父类中找到方法，开始进行缓存。
         if (fastpath(imp)) {
             // Found the method in a superclass. Cache it in this class.
             goto done;
@@ -6518,6 +6576,8 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
             cls = cls->cache.preoptFallbackClass();
         }
 #endif
+        // 查找到了 sel-imp，对 sel-imp 进行缓存
+        // 调用 cache_t 的 insert 方法。
         log_and_fill_cache(cls, imp, sel, inst, curClass);
     }
  done_unlock:
@@ -6525,6 +6585,8 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
     if (slowpath((behavior & LOOKUP_NIL) && imp == forward_imp)) {
         return nil;
     }
+    
+    // 返回 imp
     return imp;
 }
 

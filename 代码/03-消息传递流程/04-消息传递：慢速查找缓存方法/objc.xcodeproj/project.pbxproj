@@ -60,7 +60,6 @@
 		1E3C7BB4265FB00900429C21 /* objc-shared-cache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1E3C7BB3265FB00900429C21 /* objc-shared-cache.h */; };
 		1E3C7BB6265FB10500429C21 /* reason_private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1E3C7BB5265FB10500429C21 /* reason_private.h */; };
 		1E3C7BB8265FB11100429C21 /* variant_private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1E3C7BB7265FB11100429C21 /* variant_private.h */; };
-		1E7645DD2766183B0095DCF0 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1E7645DC2766183B0095DCF0 /* main.m */; };
 		393CEAC00DC69E3E000B69DE /* objc-references.mm in Sources */ = {isa = PBXBuildFile; fileRef = 393CEABF0DC69E3E000B69DE /* objc-references.mm */; };
 		393CEAC60DC69E67000B69DE /* objc-references.h in Headers */ = {isa = PBXBuildFile; fileRef = 393CEAC50DC69E67000B69DE /* objc-references.h */; };
 		39ABD72312F0B61800D1054C /* objc-weak.h in Headers */ = {isa = PBXBuildFile; fileRef = 39ABD71F12F0B61800D1054C /* objc-weak.h */; };
@@ -164,6 +163,7 @@
 		83F550E0155E030800E95D3B /* objc-cache-old.mm in Sources */ = {isa = PBXBuildFile; fileRef = 83F550DF155E030800E95D3B /* objc-cache-old.mm */; };
 		87BB4EA70EC39854005D08E1 /* objc-probes.d in Sources */ = {isa = PBXBuildFile; fileRef = 87BB4E900EC39633005D08E1 /* objc-probes.d */; };
 		9672F7EE14D5F488007CEC96 /* NSObject.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9672F7ED14D5F488007CEC96 /* NSObject.mm */; };
+		96CAB941276C27AD0062F952 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 96CAB940276C27AD0062F952 /* main.m */; };
 		C22F5208230EF38B001BFE14 /* objc-ptrauth.h in Headers */ = {isa = PBXBuildFile; fileRef = C22F5207230EF38B001BFE14 /* objc-ptrauth.h */; };
 		C2E6D3FC2225DCF00059DFAA /* DenseMapExtras.h in Headers */ = {isa = PBXBuildFile; fileRef = C2E6D3FB2225DCF00059DFAA /* DenseMapExtras.h */; };
 		C2EB731D23D8A38A0040672B /* dummy-library-mac-i386.c in Sources */ = {isa = PBXBuildFile; fileRef = C2EB731C23D8A38A0040672B /* dummy-library-mac-i386.c */; };
@@ -249,7 +249,6 @@
 		1E3C7BB5265FB10500429C21 /* reason_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = reason_private.h; sourceTree = "<group>"; };
 		1E3C7BB7265FB11100429C21 /* variant_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = variant_private.h; sourceTree = "<group>"; };
 		1E7645DA2766183B0095DCF0 /* 消息传递：快速查找缓存方法 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "消息传递：快速查找缓存方法"; sourceTree = BUILT_PRODUCTS_DIR; };
-		1E7645DC2766183B0095DCF0 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		393CEABF0DC69E3E000B69DE /* objc-references.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "objc-references.mm"; path = "runtime/objc-references.mm"; sourceTree = "<group>"; };
 		393CEAC50DC69E67000B69DE /* objc-references.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "objc-references.h"; path = "runtime/objc-references.h"; sourceTree = "<group>"; };
 		39ABD71F12F0B61800D1054C /* objc-weak.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "objc-weak.h"; path = "runtime/objc-weak.h"; sourceTree = "<group>"; };
@@ -359,6 +358,7 @@
 		83F550DF155E030800E95D3B /* objc-cache-old.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "objc-cache-old.mm"; path = "runtime/objc-cache-old.mm"; sourceTree = "<group>"; };
 		87BB4E900EC39633005D08E1 /* objc-probes.d */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.dtrace; name = "objc-probes.d"; path = "runtime/objc-probes.d"; sourceTree = "<group>"; };
 		9672F7ED14D5F488007CEC96 /* NSObject.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = NSObject.mm; path = runtime/NSObject.mm; sourceTree = "<group>"; };
+		96CAB940276C27AD0062F952 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		BC8B5D1212D3D48100C78A5B /* libauto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libauto.dylib; path = /usr/lib/libauto.dylib; sourceTree = "<absolute>"; };
 		C217B55222DE556D004369BA /* objc-env.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "objc-env.h"; path = "runtime/objc-env.h"; sourceTree = "<group>"; };
 		C2296C682457336C003FAE61 /* objc-bp-assist.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "objc-bp-assist.h"; path = "runtime/objc-bp-assist.h"; sourceTree = "<group>"; };
@@ -370,8 +370,6 @@
 		E8923D9D116AB2820071B552 /* objc-blocktramps-x86_64.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; name = "objc-blocktramps-x86_64.s"; path = "runtime/objc-blocktramps-x86_64.s"; sourceTree = "<group>"; };
 		E8923DA0116AB2820071B552 /* objc-block-trampolines.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "objc-block-trampolines.mm"; path = "runtime/objc-block-trampolines.mm"; sourceTree = "<group>"; };
 		E934A9EF23E9967D0088F26F /* objc4.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = objc4.plist; sourceTree = "<group>"; };
-		E97047552497CC5300781D29 /* check_preopt_caches.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = check_preopt_caches.entitlements; sourceTree = "<group>"; };
-		E9AD465924925261002AF1DB /* check_preopt_caches.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = check_preopt_caches.mm; sourceTree = "<group>"; };
 		F378CAC625534BAC00AC8F83 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = runtime/ModulePrivate/module.modulemap; sourceTree = "<group>"; };
 		F9BCC727205C68E800DD9AFC /* libobjc-trampolines.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libobjc-trampolines.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -414,6 +412,7 @@
 		08FB7794FE84155DC02AAC07 /* objc */ = {
 			isa = PBXGroup;
 			children = (
+				96CAB93F276C27AD0062F952 /* 消息传递：慢速查找缓存方法 */,
 				1E3C7B8D265F95EE00429C21 /* FNCommon */,
 				BC8B5D1212D3D48100C78A5B /* libauto.dylib */,
 				838485C60D6D687700CEA253 /* Public Headers */,
@@ -424,8 +423,6 @@
 				08FB7795FE84155DC02AAC07 /* Source */,
 				838485B20D6D67F900CEA253 /* Other */,
 				6EF877D82325D62600963DBB /* objcdt */,
-				E9AD465824925261002AF1DB /* check-preopt-caches */,
-				1E7645DB2766183B0095DCF0 /* 消息传递：快速查找缓存方法 */,
 				1AB674ADFE9D54B511CA2CBB /* Products */,
 				F9BCC72A205C6A1600DD9AFC /* Frameworks */,
 			);
@@ -576,14 +573,6 @@
 			path = kern;
 			sourceTree = "<group>";
 		};
-		1E7645DB2766183B0095DCF0 /* 消息传递：快速查找缓存方法 */ = {
-			isa = PBXGroup;
-			children = (
-				1E7645DC2766183B0095DCF0 /* main.m */,
-			);
-			path = "消息传递：快速查找缓存方法";
-			sourceTree = "<group>";
-		};
 		6EF877D82325D62600963DBB /* objcdt */ = {
 			isa = PBXGroup;
 			children = (
@@ -702,13 +691,12 @@
 			name = "Project Headers";
 			sourceTree = "<group>";
 		};
-		E9AD465824925261002AF1DB /* check-preopt-caches */ = {
+		96CAB93F276C27AD0062F952 /* 消息传递：慢速查找缓存方法 */ = {
 			isa = PBXGroup;
 			children = (
-				E97047552497CC5300781D29 /* check_preopt_caches.entitlements */,
-				E9AD465924925261002AF1DB /* check_preopt_caches.mm */,
+				96CAB940276C27AD0062F952 /* main.m */,
 			);
-			path = "check-preopt-caches";
+			path = "消息传递：慢速查找缓存方法";
 			sourceTree = "<group>";
 		};
 		F9BCC72A205C6A1600DD9AFC /* Frameworks */ = {
@@ -993,7 +981,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				1E7645DD2766183B0095DCF0 /* main.m in Sources */,
+				96CAB941276C27AD0062F952 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
