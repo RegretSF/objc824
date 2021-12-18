@@ -5954,9 +5954,11 @@ ALWAYS_INLINE static method_t *
 findMethodInSortedMethodList(SEL key, const method_list_t *list, const getNameFunc &getName)
 {
     ASSERT(list);
-
+    // auto 自动推断类型，
     auto first = list->begin();
     auto base = first;
+    // decltype被称作类型说明符，它的作用是选择并返回操作数的数据类型。
+    // probe 为 （auto first）类型的指针。
     decltype(first) probe;
 
     uintptr_t keyValue = (uintptr_t)key;
