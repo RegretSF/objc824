@@ -6315,7 +6315,8 @@ resolveMethod_locked(id inst, SEL sel, Class cls, int behavior)
     ASSERT(cls->isRealized());
 
     runtimeLock.unlock();
-
+    // 判断是否是元类，本质上是判断实例方法和类方法。
+    // 在整个 OC 的底层，没有所谓的实例方法和对象方法，之所以在 OC 层面有是因为 Apple 为了更加体现面向对象。
     if (! cls->isMetaClass()) {
         // try [cls resolveInstanceMethod:sel]
         resolveInstanceMethod(inst, sel, cls);
@@ -6566,6 +6567,12 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
 
     // No implementation found. Try method resolver once.
     if (slowpath(behavior & LOOKUP_RESOLVER)) {
+        // ^= : 异或运算符，相同为0，不同为 1。
+        // behavior = 3，LOOKUP_RESOLVER = 2.
+        // behavior:         0011
+        // LOOKUP_RESOLVER:  0010
+        // 结果:              0001
+        // behavior = 1.
         behavior ^= LOOKUP_RESOLVER;
         return resolveMethod_locked(inst, sel, cls, behavior);
     }
