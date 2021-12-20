@@ -6,13 +6,6 @@
 //
 
 #import <Foundation/Foundation.h>
-
-@implementation NSObject(Category)
-- (void)play_2 {
-    NSLog(@"%s", __func__);
-}
-@end
-
 @interface SHPerson : NSObject
 - (void)helloWorld;
 @end
@@ -33,12 +26,31 @@
 }
 @end
 
+@implementation NSObject(Category)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-protocol-method-implementation"
++ (BOOL)resolveInstanceMethod:(SEL)sel {
+    if (sel == NSSelectorFromString(@"play_3")) {
+        NSLog(@"%s",__func__);
+    }
+    
+    return NO;
+}
+
+
++ (BOOL)resolveClassMethod:(SEL)sel {
+    NSLog(@"%s",__func__);
+    return NO;
+}
+#pragma clang diagnostic pop
+@end
+
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         SHStudent *s = [[SHStudent alloc] init];
 //        [s helloWorld];
 //        [s play_1];
-//        [SHStudent play_2];
+        [SHStudent play_2];
         [s play_3];
 
         
