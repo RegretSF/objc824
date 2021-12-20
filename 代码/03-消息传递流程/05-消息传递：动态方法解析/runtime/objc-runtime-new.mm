@@ -6233,10 +6233,12 @@ static void resolveClassMethod(id inst, SEL sel, Class cls)
         }
     }
     BOOL (*msg)(Class, SEL, SEL) = (typeof(msg))objc_msgSend;
+    // 是否动态解析
     bool resolved = msg(nonmeta, @selector(resolveClassMethod:), sel);
 
     // Cache the result (good or bad) so the resolver doesn't fire next time.
     // +resolveClassMethod adds to self->ISA() a.k.a. cls
+    // 缓存 sel-imp
     IMP imp = lookUpImpOrNilTryCache(inst, sel, cls);
 
     if (resolved  &&  PrintResolving) {
@@ -6276,10 +6278,12 @@ static void resolveInstanceMethod(id inst, SEL sel, Class cls)
     }
 
     BOOL (*msg)(Class, SEL, SEL) = (typeof(msg))objc_msgSend;
+    // 是否动态解析
     bool resolved = msg(cls, resolve_sel, sel);
 
     // Cache the result (good or bad) so the resolver doesn't fire next time.
     // +resolveInstanceMethod adds to self a.k.a. cls
+    // 缓存 sel-imp
     IMP imp = lookUpImpOrNilTryCache(inst, sel, cls);
 
     if (resolved  &&  PrintResolving) {
@@ -6315,23 +6319,32 @@ resolveMethod_locked(id inst, SEL sel, Class cls, int behavior)
     ASSERT(cls->isRealized());
 
     runtimeLock.unlock();
-    // 判断是否是元类，本质上是判断实例方法和类方法。
+    // 判断是否是元类，如果不是元类，查找实例方法，否则查找类方法。
     // 在整个 OC 的底层，没有所谓的实例方法和对象方法，之所以在 OC 层面有是因为 Apple 为了更加体现面向对象。
     if (! cls->isMetaClass()) {
         // try [cls resolveInstanceMethod:sel]
+        // 动态解析实例方法。如果没有实现 sel，系统提供接口，给开发者一次机会，避免程序崩溃。
         resolveInstanceMethod(inst, sel, cls);
     } 
     else {
         // try [nonMetaClass resolveClassMethod:sel]
         // and [cls resolveInstanceMethod:sel]
+        // 动态解析类方法。本质上是查找元类的对象方法。
         resolveClassMethod(inst, sel, cls);
+        
+        // lookUpImpOrNilTryCache 检查是否有缓存，目的是检查是否动态解析类方法
         if (!lookUpImpOrNilTryCache(inst, sel, cls)) {
+            // 在动态解析类方法后，开发者在 NSObject 的处理实现的可能不是类方法，而是元类方法。
+            // 所以在这里又会对实例方法进行解析，这里就是和 isa 流程图中的 superclass 的走位相呼应。
+            // 根元类的 superclass 指针指向根类。
             resolveInstanceMethod(inst, sel, cls);
         }
     }
 
     // chances are that calling the resolver have populated the cache
     // so attempt using it
+    // 如果前面的处理了，再去查找一次 lookUpImpOrForwardTryCache->_lookUpImpTryCache->lookUpImpOrForward。
+    // 如果动态解析方法失败
     return lookUpImpOrForwardTryCache(inst, sel, cls, behavior);
 }
 
