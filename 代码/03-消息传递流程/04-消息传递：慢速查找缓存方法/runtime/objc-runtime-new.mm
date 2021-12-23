@@ -6565,7 +6565,7 @@ IMP lookUpImpOrForward(id inst, SEL sel, Class cls, int behavior)
     }
 
     // No implementation found. Try method resolver once.
-
+    // 没有找到实现。 尝试方法解析器一次。
     if (slowpath(behavior & LOOKUP_RESOLVER)) {
         behavior ^= LOOKUP_RESOLVER;
         return resolveMethod_locked(inst, sel, cls, behavior);
