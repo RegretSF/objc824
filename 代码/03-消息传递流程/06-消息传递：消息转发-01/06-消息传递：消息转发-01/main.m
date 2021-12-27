@@ -128,24 +128,86 @@
  当我们进行动态方法解析之后，仍然没有找到方法的实现，这个时候系统还是会给开发者一次机会，那就是进行消息转发流程。如图中所示，消息转发流程主要有两个方法，分别为 forwardingTargetForSelector: 和 methodSignatureForSelector:。
  
  ## 二、消息转发流程
+ 那么什么叫消息转发流程是怎么个转发呢？我们先来看看 forwardingTargetForSelector: 方法和 methodSignatureForSelector: 方法怎么用。
+ ### 1. 快速转发流程
+ forwardingTargetForSelector:  方法的返回值为 id，参数为 aSelector。那么根据官方的注解，我个人的理解为，当实现这个方法，可以对 aSelector 进行转发，接收的对象为 id 类型，也就是任意对象。当我们返回接收的对象时，接收的对象会对 aSelector 继续进行查找，也就是重复前面所讲的消息传递的几个流程。
+ 
+ 我们举个例子，现在有两个对象，分别为 SHPerson 和 SHAnimal，我们在 SHPerson 中声明 run 方法，但不实现，并且实现 forwardingTargetForSelector: 方法。在 SHAnimal 中实现一个 run 方法。具体的代码如下：
+ ```swift
+ @interface SHAnimal : NSObject
+ @end
+ @implementation SHAnimal
+ - (void)run {
+     NSLog(@"%s", __func__);
+ }
+ @end
+ ```
+ ```swift
+ @interface SHPerson : NSObject
+ - (void)run;
+ @end
+ @implementation SHPerson
+ - (id)forwardingTargetForSelector:(SEL)aSelector {
+     if (aSelector == @selector(run)) {
+         NSLog(@"%s",__func__);
+         return [SHAnimal alloc];
+     }
+     return [super forwardingTargetForSelector:aSelector];
+ }
+ @end
+ ```
+ ```swift
+ SHPerson *p = [[SHPerson alloc] init];
+ [p run];
+ ```
+ ```swift
+ 打印结果：
+ 2021-12-27 16:28:14.862557+0800 06-消息传递：消息转发-01[72288:2241695] -[SHPerson forwardingTargetForSelector:]
+ 2021-12-27 16:28:14.862844+0800 06-消息传递：消息转发-01[72288:2241695] -[SHAnimal run]
+ ```
+ 当我们在 SHPerson 没有实现 run 方法的时候，除了可以在动态方法解析那一流程做处理之外，还可以在 forwardingTargetForSelector: 方法中做处理。就如同打印的结果，SHPerson 没有实现 run ，我们手动的让它去 SHAnimal 对象里找。
+ 
+ SHAnimal 对象就是当前消息转发的接收者，很多人也称它为备用接收者，或者称为备胎。
  
  
+ 
+ ### 2. 慢速转发流程
  */
 
 extern void instrumentObjcMessageSends(BOOL flag);
 
+@interface SHAnimal : NSObject
+@end
+@implementation SHAnimal
+- (void)run {
+    NSLog(@"%s", __func__);
+}
+@end
+
+
 @interface SHPerson : NSObject
-- (void)helloWorld;
+- (void)run;
 @end
 @implementation SHPerson
+- (id)forwardingTargetForSelector:(SEL)aSelector {
+    if (aSelector == @selector(run)) {
+        NSLog(@"%s",__func__);
+        return [SHAnimal alloc];
+    }
+    return [super forwardingTargetForSelector:aSelector];
+}
 @end
+
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         SHPerson *p = [[SHPerson alloc] init];
-        instrumentObjcMessageSends(YES);
-        [p helloWorld];
-        instrumentObjcMessageSends(NO);
+        [p run];
+        
+//        SHPerson *p = [[SHPerson alloc] init];
+//        instrumentObjcMessageSends(YES);
+//        [p helloWorld];
+//        instrumentObjcMessageSends(NO);
     }
     return 0;
 }
