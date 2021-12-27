@@ -129,6 +129,7 @@
  
  ## 二、消息转发流程
  那么什么叫消息转发流程是怎么个转发呢？我们先来看看 forwardingTargetForSelector: 方法和 methodSignatureForSelector: 方法怎么用。
+ 
  ### 1. 快速转发流程
  forwardingTargetForSelector:  方法的返回值为 id，参数为 aSelector。那么根据官方的注解，我个人的理解为，当实现这个方法，可以对 aSelector 进行转发，接收的对象为 id 类型，也就是任意对象。当我们返回接收的对象时，接收的对象会对 aSelector 继续进行查找，也就是重复前面所讲的消息传递的几个流程。
  
@@ -169,9 +170,46 @@
  
  SHAnimal 对象就是当前消息转发的接收者，很多人也称它为备用接收者，或者称为备胎。
  
- 
- 
  ### 2. 慢速转发流程
+ 当我们在 forwardingTargetForSelector: 方法做处理的时候，总会觉得奇奇怪怪的。如果 SHAnimal 也不实现 run 方法，程序一样会崩溃，毕竟只是备胎😂，所以我们不想在 forwardingTargetForSelector: 中做处理，那么就开始进入到下一个流程，叫慢速转发流程，也就是实现 methodSignatureForSelector: 方法，在 methodSignatureForSelector: 方法中做转发的处理。
+ 
+ methodSignatureForSelector: 方法需要返回一个 NSMethodSignature 对象，也就是方法签名。需要注意的是，methodSignatureForSelector: 和 forwardingTargetForSelector: 不能同时存在哦，否则就只走到 forwardingTargetForSelector: ，不会走到 methodSignatureForSelector: 。
+ 
+ 代码如下：
+ ```swift
+ @interface SHPerson : NSObject
+ - (void)run;
+ @end
+ @implementation SHPerson
+ - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector {
+     if (aSelector == @selector(run)) {
+         NSLog(@"%s",__func__);
+         NSMethodSignature *signature = [NSMethodSignature signatureWithObjCTypes:"v@:"];
+         return signature;
+     }
+     return [super methodSignatureForSelector:aSelector];
+ }
+ ```
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/03-消息传递流程/06-消息传递：消息转发-01/06-消息传递：消息转发-01/慢速转发崩溃.png
+ 
+ 我们把代码跑起来后，虽然调用了 methodSignatureForSelector:  方法，但程序还是崩了。难道 methodSignatureForSelector: 方法不能解决吗，我在看 methodSignatureForSelector: 方法的文档说明的时候，注意到了 forwardInvocation: 方法。
+ 
+ 在实现 methodSignatureForSelector: 方法的同时，也必须创建 NSInvocation 对象。我理解的大概意思是，methodSignatureForSelector:  和 forwardInvocation:  必须一起实现，因为实现了 forwardInvocation:  方法，会去创建 NSInvocation 对象，并且将 NSInvocation 对象作为参数传到 forwardInvocation:  方法。
+ 
+ 那么，我们实现  forwardInvocation: 方法，并重新运行。
+ ```swift
+ - (void)forwardInvocation:(NSInvocation *)anInvocation {
+     NSLog(@"%s",__func__);
+ }
+ ```
+ /Users/tt-fangss/Fangss/TmpeCode/objc824/代码/03-消息传递流程/06-消息传递：消息转发-01/06-消息传递：消息转发-01/forwardInvocation 打印.png
+
+ 实现了 forwardInvocation: 方法后，果然不崩了，并且还打印了 methodSignatureForSelector: 和 forwardInvocation:。
+ 
+ 
+ 
+ 
+ 
  */
 
 extern void instrumentObjcMessageSends(BOOL flag);
@@ -189,12 +227,25 @@ extern void instrumentObjcMessageSends(BOOL flag);
 - (void)run;
 @end
 @implementation SHPerson
-- (id)forwardingTargetForSelector:(SEL)aSelector {
+//- (id)forwardingTargetForSelector:(SEL)aSelector {
+//    if (aSelector == @selector(run)) {
+//        NSLog(@"%s",__func__);
+//        return [SHAnimal alloc];
+//    }
+//    return [super forwardingTargetForSelector:aSelector];
+//}
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)aSelector {
     if (aSelector == @selector(run)) {
         NSLog(@"%s",__func__);
-        return [SHAnimal alloc];
+        NSMethodSignature *signature = [NSMethodSignature signatureWithObjCTypes:"v@:"];
+        return signature;
     }
-    return [super forwardingTargetForSelector:aSelector];
+    return [super methodSignatureForSelector:aSelector];
+}
+
+- (void)forwardInvocation:(NSInvocation *)anInvocation {
+    NSLog(@"%s",__func__);
 }
 @end
 
